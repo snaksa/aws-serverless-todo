@@ -3,6 +3,7 @@ import * as cognito from '@aws-cdk/aws-cognito';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as lambda from '@aws-cdk/aws-lambda-nodejs';
 import * as apigateway from '@aws-cdk/aws-apigateway';
+import * as sns from '@aws-cdk/aws-sns';
 import { CognitoConfirmationLambda } from './lambda/cognito-confirmation';
 import { AwsApiGateway, ApiGatewayMethodType } from './constructs/aws-api-gateway';
 import {
@@ -17,21 +18,30 @@ import {
   TodosFetchAllRequest,
   TodosDeleteRequest,
 } from './requests/index';
+import { TodosGetRequest } from './requests/todo-get-request';
+import { TodosPutRequest } from './requests/todo-put-request';
+import { CognitoPostAuthenticationLambda } from './lambda/cognito-post-authentication';
+import { TodoCounterLambda } from './lambda/todo-counter';
 
 export class AwsTodoStack extends cdk.Stack {
 
   dynamodbUserTable: dynamodb.Table;
   dynamodbItemTable: dynamodb.Table;
   cognitoConfirmationLambda: lambda.NodejsFunction;
+  cognitoPostAuthenticationLambda: lambda.NodejsFunction;
   cognitoUserPool: cognito.UserPool;
   cognitoUserPoolClient: cognito.UserPoolClient;
   cognitoAuthorizer: apigateway.CfnAuthorizer;
   api: AwsApiGateway;
+  topic: sns.Topic;
+  todoCounterLambda: lambda.NodejsFunction;
 
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-    this.buildCognito();
     this.buildDynamoDB();
+    this.buildSNS();
+    this.buildCognito();
+    this.buildCounterLambda();
     this.buildApiGateway();
   }
 
@@ -60,6 +70,7 @@ export class AwsTodoStack extends cdk.Stack {
       },
       lambdaTriggers: {
         preSignUp: this.buildCognitoConfirmationLambda(),
+        postAuthentication: this.buildCognitoPostAuthenticationLambda(),
       },
     });
 
@@ -76,6 +87,18 @@ export class AwsTodoStack extends cdk.Stack {
     this.cognitoConfirmationLambda = new CognitoConfirmationLambda(this, 'cognitoconfirmation').lambda;
 
     return this.cognitoConfirmationLambda;
+  }
+
+  buildCognitoPostAuthenticationLambda() {
+    this.cognitoPostAuthenticationLambda = new CognitoPostAuthenticationLambda(this, 'cognitopostauth', { table: this.dynamodbUserTable }).lambda;
+
+    return this.cognitoPostAuthenticationLambda;
+  }
+
+  buildCounterLambda() {
+    this.todoCounterLambda = new TodoCounterLambda(this, 'todocounter', { table: this.dynamodbUserTable, topic: this.topic }).lambda;
+
+    return this.todoCounterLambda;
   }
 
   buildDynamoDB(): void {
@@ -108,11 +131,19 @@ export class AwsTodoStack extends cdk.Stack {
     this.api.addMethod(userDetails, ApiGatewayMethodType.GET, new UserDetailsRequest(this, this.dynamodbUserTable, this.cognitoAuthorizer.ref));
 
     const todos = this.api.addResource(this.api.getRoot(), 'todos');
-    this.api.addMethod(todos, ApiGatewayMethodType.POST, new TodosCreateRequest(this, this.dynamodbItemTable, this.cognitoAuthorizer.ref));
+    this.api.addMethod(todos, ApiGatewayMethodType.POST, new TodosCreateRequest(this, this.dynamodbItemTable, this.topic, this.cognitoAuthorizer.ref));
     this.api.addMethod(todos, ApiGatewayMethodType.GET, new TodosFetchAllRequest(this, this.dynamodbItemTable, this.cognitoAuthorizer.ref));
 
     const todosId = this.api.addResource(todos, '{id}');
-    this.api.addMethod(todosId, ApiGatewayMethodType.DELETE, new TodosDeleteRequest(this, this.dynamodbItemTable, this.cognitoAuthorizer.ref));
+    this.api.addMethod(todosId, ApiGatewayMethodType.GET, new TodosGetRequest(this, this.dynamodbItemTable, this.cognitoAuthorizer.ref));
+    this.api.addMethod(todosId, ApiGatewayMethodType.PUT, new TodosPutRequest(this, this.dynamodbItemTable, this.cognitoAuthorizer.ref));
+    this.api.addMethod(todosId, ApiGatewayMethodType.DELETE, new TodosDeleteRequest(this, this.dynamodbItemTable, this.topic, this.cognitoAuthorizer.ref));
+  }
+
+  buildSNS() {
+    this.topic = new sns.Topic(this, 'Topic', {
+      displayName: 'ToDo create delete'
+    });
   }
 
 }

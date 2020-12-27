@@ -23,6 +23,14 @@ export const handler = async (event: any) => {
         };
     }
 
+    let snsParams = {
+        Message: JSON.stringify({id: event.user.id, type: 0}),
+        TopicArn: process.env.topic
+      };
+
+    // Create promise and SNS service object
+    await new AWS.SNS({apiVersion: '2010-03-31'}).publish(snsParams).promise();
+
     return {
         statusCode: 200,
         todo: dbDelete.Attributes ? AWS.DynamoDB.Converter.unmarshall(dbDelete.Attributes) : {},

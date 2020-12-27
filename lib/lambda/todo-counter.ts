@@ -1,9 +1,10 @@
 import { Construct } from "@aws-cdk/core";
 import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
 import { Table } from "@aws-cdk/aws-dynamodb";
-import { Topic } from "@aws-cdk/aws-sns";
+import * as subscriptions from '@aws-cdk/aws-sns-subscriptions';
+import {Topic} from '@aws-cdk/aws-sns';
 
-export class TodoDeleteLambda extends Construct {
+export class TodoCounterLambda extends Construct {
     public lambda: NodejsFunction;
 
     constructor(scope: Construct, id: string, props: { table: Table, topic: Topic }) {
@@ -17,6 +18,6 @@ export class TodoDeleteLambda extends Construct {
         });
 
         props.table.grantWriteData(this.lambda);
-        props.topic.grantPublish(this.lambda);
+        props.topic.addSubscription(new subscriptions.LambdaSubscription(this.lambda));
     }
 }

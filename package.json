@@ -21,13 +21,15 @@
     "typescript": "~3.9.7"
   },
   "dependencies": {
-    "@aws-cdk/aws-apigateway": "^1.78.0",
-    "@aws-cdk/aws-cognito": "^1.78.0",
-    "@aws-cdk/aws-dynamodb": "^1.78.0",
-    "@aws-cdk/aws-lambda": "^1.78.0",
-    "@aws-cdk/aws-lambda-nodejs": "^1.78.0",
-    "@aws-cdk/core": "1.78.0",
-    "aws-sdk": "^2.809.0",
+    "@aws-cdk/aws-apigateway": "^1.80.0",
+    "@aws-cdk/aws-cognito": "^1.80.0",
+    "@aws-cdk/aws-dynamodb": "^1.80.0",
+    "@aws-cdk/aws-lambda": "^1.80.0",
+    "@aws-cdk/aws-lambda-nodejs": "^1.80.0",
+    "@aws-cdk/aws-sns": "^1.80.0",
+    "@aws-cdk/aws-sns-subscriptions": "^1.80.0",
+    "@aws-cdk/core": "^1.80.0",
+    "aws-sdk": "^2.817.0",
     "source-map-support": "^0.5.16"
   }
 }

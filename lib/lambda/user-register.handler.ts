@@ -34,6 +34,7 @@ export const handler = async (event: any) => {
             'Email': { S: event.email },
             'SignUpDate': { N: Date.now().toString() },
             'LastLogin': { N: "0" },
+            'TotalItems': { N: "0" },
         }
     };
 
