@@ -1,7 +1,7 @@
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import { Construct } from '@aws-cdk/core';
-import { UserRegisterLambda } from '../lambda/user-register';
-import BaseRequest from './base-request';
+import { UserRegisterLambda } from './user-register';
+import BaseRequest from '../../base-request';
 
 export class RegisterRequest extends BaseRequest {
     requestTemplates = {
