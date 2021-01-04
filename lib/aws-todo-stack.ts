@@ -17,9 +17,9 @@ import {
   TodosCreateRequest,
   TodosFetchAllRequest,
   TodosDeleteRequest,
+  TodosPutRequest,
+  TodosGetRequest,
 } from './requests/index';
-import { TodosGetRequest } from './requests/todo-get-request';
-import { TodosPutRequest } from './requests/todo-put-request';
 import { CognitoPostAuthenticationLambda } from './lambda/cognito-post-authentication';
 import { TodoCounterLambda } from './lambda/todo-counter';
 
