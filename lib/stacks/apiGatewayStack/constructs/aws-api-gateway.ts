@@ -1,13 +1,8 @@
 import { Construct } from "@aws-cdk/core";
 import * as apigateway from '@aws-cdk/aws-apigateway';
-import BaseRequest from '../requests/base-request';
+import BaseRequest from '../../base-request';
+import { ApiGatewayMethodType } from '../../../common/api-gateway-method-type';
 
-export enum ApiGatewayMethodType {
-    GET = 'GET',
-    POST = 'POST',
-    PUT = 'PUT',
-    DELETE = 'DELETE',
-}
 
 export interface AwsApiGatewayProps {
     name: string;
