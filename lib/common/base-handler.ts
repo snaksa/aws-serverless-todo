@@ -1,3 +1,5 @@
+import { ApiGatewayResponseCodes } from "./api-gateway-response-codes";
+
 export interface Response {
     statusCode: number;
     body: object;
@@ -40,14 +42,14 @@ export default abstract class BaseHandler {
 
             if (!this.validate()) {
                 return {
-                    statusCode: 400,
+                    statusCode: ApiGatewayResponseCodes.BAD_REQUEST,
                     body: JSON.stringify({ message: 'Body not valid' })
                 };
             }
 
             if(!this.authorize()) {
                 return {
-                    statusCode: 400,
+                    statusCode: ApiGatewayResponseCodes.UNAUTHORIZED,
                     body: JSON.stringify({ message: 'Unauthorized' })
                 };
             }

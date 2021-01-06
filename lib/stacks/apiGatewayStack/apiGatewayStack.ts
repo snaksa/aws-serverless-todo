@@ -1,28 +1,28 @@
-import * as cdk from '@aws-cdk/core';
-import * as apigateway from '@aws-cdk/aws-apigateway';
-import * as cognito from '@aws-cdk/aws-cognito';
+import { Stack, StackProps, Construct } from '@aws-cdk/core';
+import { AuthorizationType, CfnAuthorizer } from '@aws-cdk/aws-apigateway';
+import { UserPool } from '@aws-cdk/aws-cognito';
 import { AwsApiGateway } from './constructs/aws-api-gateway';
 
-interface StackProps extends cdk.StackProps {
-  cognitoUserPool: cognito.UserPool
+interface ApiGatewayStackProps extends StackProps {
+  cognitoUserPool: UserPool
 }
 
-export default class ApiGatewayStack extends cdk.Stack {
+export default class ApiGatewayStack extends Stack {
 
   apiGateway: AwsApiGateway;
-  cognitoAuthorizer: apigateway.CfnAuthorizer;
+  cognitoAuthorizer: CfnAuthorizer;
 
-  constructor(scope: cdk.Construct, id: string, props: StackProps) {
+  constructor(scope: Construct, id: string, props: ApiGatewayStackProps) {
     super(scope, id, props);
 
     this.apiGateway = new AwsApiGateway(this, 'TodoApi', {
       name: 'Todos API'
     });
 
-    this.cognitoAuthorizer = new apigateway.CfnAuthorizer(this, 'CognitoAuthorizer', {
+    this.cognitoAuthorizer = new CfnAuthorizer(this, 'CognitoAuthorizer', {
       name: 'cognito-authorizer',
       restApiId: this.apiGateway.api.restApiId,
-      authType: apigateway.AuthorizationType.COGNITO,
+      authType: AuthorizationType.COGNITO,
       type: 'COGNITO_USER_POOLS',
       providerArns: [props.cognitoUserPool.userPoolArn],
       identitySource: 'method.request.header.Authorization',

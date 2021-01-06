@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import DbStack from '../lib/stacks/dbStack/dbStack';
-import CognitoStack from '../lib/stacks/cognitoStack/cognitoStack';
-import SnsStack from '../lib/stacks/snsStack/snsStack';
+import DbStack from '../lib/stacks/dynamoDb/db.stack';
+import CognitoStack from '../lib/stacks/cognito/cognito.stack';
+import SnsStack from '../lib/stacks/sns/sns.stack';
 import ApiGatewayStack from '../lib/stacks/apiGatewayStack/apiGatewayStack';
-import UserStack from '../lib/stacks/userStack/userStack';
-import ToDoStack from '../lib/stacks/todoStack/todoStack';
+import UserStack from '../lib/stacks/user/user.stack';
+import ToDoStack from '../lib/stacks/todo/todo.stack';
 
 const app = new cdk.App();
 
