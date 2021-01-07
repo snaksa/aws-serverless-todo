@@ -3,13 +3,17 @@ import { UserPoolClient } from '@aws-cdk/aws-cognito';
 import { Table } from '@aws-cdk/aws-dynamodb';
 import { CfnAuthorizer } from '@aws-cdk/aws-apigateway';
 import { Topic } from '@aws-cdk/aws-sns';
+import { DynamoEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import { StartingPosition } from '@aws-cdk/aws-lambda';
+import { LogGroup } from '@aws-cdk/aws-logs';
 import { ApiGatewayMethodType } from '../../common/api-gateway-method-type';
-import { AwsApiGateway } from '../apiGatewayStack/constructs/aws-api-gateway';
+import { AwsApiGateway } from '../apiGateway/constructs/aws-api-gateway';
 import { TodosCreateRequest } from './create/todo-create-request';
 import { TodosFetchAllRequest } from './list/todo-fetch-all-request';
 import { TodosPutRequest } from './update/todo-put-request';
 import { TodosGetRequest } from './get/todo-get-request';
 import { TodosDeleteRequest } from './delete/todo-delete-request';
+import { ToDoStream } from './lambda/todo-stream';
 
 interface ToDoStackProps extends StackProps {
   apiGateway: AwsApiGateway;
@@ -35,5 +39,19 @@ export default class ToDoStack extends Stack {
       .addResourceMethod(ApiGatewayMethodType.GET, new TodosGetRequest(this, props.itemTable, props.cognitoAuthorizer.ref))
       .addResourceMethod(ApiGatewayMethodType.PUT, new TodosPutRequest(this, props.itemTable, props.cognitoAuthorizer.ref))
       .addResourceMethod(ApiGatewayMethodType.DELETE, new TodosDeleteRequest(this, props.itemTable, props.topic, props.cognitoAuthorizer.ref));
+
+
+    const logGroup = new LogGroup(this, 'ToDoStreamLogGroup');
+    
+    new ToDoStream(this, 'ToDoStream', {logGroup: logGroup}).lambda
+      .addEventSource(new DynamoEventSource(
+        props.itemTable,
+        {
+          startingPosition: StartingPosition.TRIM_HORIZON,
+          batchSize: 5,
+          bisectBatchOnError: true,
+          retryAttempts: 10,
+        }
+      ));
   }
 }

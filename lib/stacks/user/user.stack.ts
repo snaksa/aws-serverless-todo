@@ -5,7 +5,7 @@ import { CfnAuthorizer } from '@aws-cdk/aws-apigateway';
 import { Topic } from '@aws-cdk/aws-sns';
 import { ApiGatewayMethodType } from '../../common/api-gateway-method-type';
 import { TodoCounterLambda } from './lambda/todo-counter';
-import { AwsApiGateway } from '../apiGatewayStack/constructs/aws-api-gateway';
+import { AwsApiGateway } from '../apiGateway/constructs/aws-api-gateway';
 import { RegisterRequest } from './register/register-request';
 import { LoginRequest } from './login/login-request';
 import { UserDetailsRequest } from './details/user-details-request';

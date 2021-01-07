@@ -15,6 +15,7 @@ export default class BaseTable {
     } | null;
     billingMode = dynamodb.BillingMode.PAY_PER_REQUEST;
     removalPolicy = cdk.RemovalPolicy.DESTROY;
+    stream: dynamodb.StreamViewType;
 
     configureTable(scope: Construct, id: string) {
         this.table = new dynamodb.Table(scope, id, {
@@ -23,6 +24,7 @@ export default class BaseTable {
             sortKey: this.sortKey ?? undefined,
             billingMode: this.billingMode,
             removalPolicy: this.removalPolicy,
+            stream: this.stream
         });
     }
 }

@@ -4,6 +4,7 @@ import BaseTable from "./base-table";
 
 export class ItemTable extends BaseTable {
     tableName = 'TodoItemCollection';
+    stream = dynamodb.StreamViewType.KEYS_ONLY;
     partitionKey = {
         name: 'Id',
         type: dynamodb.AttributeType.STRING,
