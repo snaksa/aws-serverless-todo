@@ -2,18 +2,20 @@ import * as AWS from 'aws-sdk';
 import BaseHandler from '../../../common/base-handler';
 
 interface ToDoStreamEventData {
-    userId: string;
+    events: { timestamp: number, message: string }[];
 }
 
 class ToDoStreamHandler extends BaseHandler {
-    private events: { timestamp: number, message: string }[];
+    private input: ToDoStreamEventData = {
+        events: []
+    };
 
     parseEvent(event: any) {
         event.Records.forEach((record: any) => {
             const name = record.eventName;
             const keys = JSON.stringify(AWS.DynamoDB.Converter.unmarshall(record.dynamodb.Keys));
             const timestamp = Date.now();
-            this.events.push({
+            this.input.events.push({
                 timestamp: timestamp,
                 message: `${timestamp}:${name}:${keys}`
             })
@@ -22,17 +24,18 @@ class ToDoStreamHandler extends BaseHandler {
     }
 
     async run(): Promise<any> {
-        const cloudwatchlogs = new AWS.CloudWatchLogs();
-        cloudwatchlogs.putLogEvents({
-            logEvents: this.events.map((event: any) => ({ timestamp: event.timestamp, message: event.message })),
-            logGroupName: process.env.logGroupName ?? '',
-            logStreamName: `logs${Date.now()}`,
-        }, function (err, data) {
+        const cloudWatchLogs = new AWS.CloudWatchLogs();
 
-        });
+        if (this.input.events) {
+            await cloudWatchLogs.putLogEvents({
+                logEvents: this.input.events,
+                logGroupName: process.env.logGroupName ?? '',
+                logStreamName: process.env.logStreamName ?? '',
+            }).promise();
+        }
 
         return {
-            response: 'test'
+            message: 'finish'
         };
     }
 }

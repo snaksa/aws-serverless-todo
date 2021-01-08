@@ -42,8 +42,9 @@ export default class ToDoStack extends Stack {
 
 
     const logGroup = new LogGroup(this, 'ToDoStreamLogGroup');
-    
-    new ToDoStream(this, 'ToDoStream', {logGroup: logGroup}).lambda
+    logGroup.addStream('ToDoStreamLogs');
+
+    new ToDoStream(this, 'ToDoStream', { logGroup: logGroup }).lambda
       .addEventSource(new DynamoEventSource(
         props.itemTable,
         {
