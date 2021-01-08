@@ -40,11 +40,10 @@ export default class ToDoStack extends Stack {
       .addResourceMethod(ApiGatewayMethodType.PUT, new TodosPutRequest(this, props.itemTable, props.cognitoAuthorizer.ref))
       .addResourceMethod(ApiGatewayMethodType.DELETE, new TodosDeleteRequest(this, props.itemTable, props.topic, props.cognitoAuthorizer.ref));
 
-
     const logGroup = new LogGroup(this, 'ToDoStreamLogGroup');
-    logGroup.addStream('ToDoStreamLogs');
+    const logGroupStream = logGroup.addStream('ToDoStreamLogs');
 
-    new ToDoStream(this, 'ToDoStream', { logGroup: logGroup }).lambda
+    new ToDoStream(this, 'ToDoStream', { logGroup: logGroup, logStream: logGroupStream }).lambda
       .addEventSource(new DynamoEventSource(
         props.itemTable,
         {

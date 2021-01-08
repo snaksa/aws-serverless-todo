@@ -7,6 +7,8 @@ import SnsStack from '../lib/stacks/sns/sns.stack';
 import ApiGatewayStack from '../lib/stacks/apiGateway/apiGateway.stack';
 import UserStack from '../lib/stacks/user/user.stack';
 import ToDoStack from '../lib/stacks/todo/todo.stack';
+import SqsStack from '../lib/stacks/sqs/sqs.stack';
+import TranscribeStack from '../lib/stacks/transcribe/transcribe.stack';
 
 const app = new cdk.App();
 
@@ -17,6 +19,7 @@ const cognitoStack = new CognitoStack(app, 'CognitoStack', {
 });
 
 const snsStack = new SnsStack(app, 'SnsStack');
+const sqsStack = new SqsStack(app, 'SqsStack', { transcribeProcessingTable: dbStack.transcribeProcessingTable });
 
 const apiGatewayStack = new ApiGatewayStack(app, 'ApiGatewaySatck', {
     cognitoUserPool: cognitoStack.cognitoUserPool
@@ -36,4 +39,10 @@ const todoStack = new ToDoStack(app, 'ToDoStack', {
     cognitoUserPoolClient: cognitoStack.cognitoUserPoolClient,
     cognitoAuthorizer: apiGatewayStack.cognitoAuthorizer,
     topic: snsStack.topic
+});
+
+const transcribeStack = new TranscribeStack(app, 'TranscribeStack', {
+    apiGateway: apiGatewayStack.apiGateway,
+    transcribeProcessingTable: dbStack.transcribeProcessingTable,
+    speechToTextQueue: sqsStack.speechToTextQueue
 });
