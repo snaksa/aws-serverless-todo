@@ -5,6 +5,7 @@ import BaseHandler from '../../../common/base-handler';
 class SpeechHandler extends BaseHandler {
   parseEvent(event: any) {
     console.log(event);
+    // TODO: get bucket name and object key
   }
 
   async run(): Promise<any> {
@@ -25,19 +26,7 @@ class SpeechHandler extends BaseHandler {
     // Call DynamoDB to read the item from the table
     const dbPut = await ddb.putItem(dbParams).promise();
 
-    const params = {
-      MessageBody: id,
-      QueueUrl: process.env.queue ?? '',
-      MessageAttributes: {
-        'Id': {
-          DataType: 'String',
-          StringValue: id
-        },
-      },
-    };
-
-    const sqs = new AWS.SQS();
-    await sqs.sendMessage(params).promise();
+    // TODO: start transcribe job
 
     return {
       message: 'finish'

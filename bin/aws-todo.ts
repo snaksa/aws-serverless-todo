@@ -44,5 +44,6 @@ const todoStack = new ToDoStack(app, 'ToDoStack', {
 const transcribeStack = new TranscribeStack(app, 'TranscribeStack', {
     apiGateway: apiGatewayStack.apiGateway,
     transcribeProcessingTable: dbStack.transcribeProcessingTable,
-    speechToTextQueue: sqsStack.speechToTextQueue
+    speechToTextQueue: sqsStack.speechToTextQueue,
+    cognitoAuthorizer: apiGatewayStack.cognitoAuthorizer
 });
