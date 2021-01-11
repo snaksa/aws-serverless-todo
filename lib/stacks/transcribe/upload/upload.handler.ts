@@ -11,19 +11,22 @@ class UploadHandler extends BaseHandler {
 
   parseEvent(event: any) {
     console.log(event);
-    this.input.file = Buffer.from(event.body.replace(/^data:image\/\w+;base64,/, ""), 'base64');
+    this.input = { file: Buffer.from(event.body.replace(/^data:image\/\w+;base64,/, ""), 'base64') };
   }
 
   async run(): Promise<any> {
-
-    var s3Bucket = new AWS.S3({ params: { Bucket: process.env.bucket } });
-
-    const data = {
-      Key: Date.now().toString(),
-      Body: this.input.file,
-      Bucket: process.env.bucket ?? ''
-    };
     try {
+      console.log(process.env);
+      var s3Bucket = new AWS.S3({ params: { Bucket: process.env.bucket } });
+
+      const data: AWS.S3.PutObjectRequest = {
+        Key: Date.now().toString(),
+        Body: this.input.file,
+        Bucket: process.env.bucket ?? '',
+        ContentEncoding: 'base64',
+        ContentType: 'image/jpeg',
+      };
+
       await s3Bucket.putObject(data).promise();
 
       var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });

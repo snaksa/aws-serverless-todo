@@ -12,7 +12,7 @@ export class UploadLambda extends Construct {
         this.lambda = new NodejsFunction(this, 'handler', {
             environment: {
                 table: props.transcribeProcessingTable.tableName,
-                bucket: Bucket.name
+                bucket: props.bucket.bucketName
             }
         });
 
