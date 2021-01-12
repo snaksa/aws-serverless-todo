@@ -17,7 +17,13 @@ export class AwsApiGateway {
             defaultCorsPreflightOptions: {
                 allowOrigins: Cors.ALL_ORIGINS,
                 allowMethods: Cors.ALL_METHODS // this is also the default
-            }
+            },
+            binaryMediaTypes: [
+                'image/png',
+                'multipart/form-data',
+                'image/jpeg',
+                'application/octet-stream'
+            ],
         });
     }
 

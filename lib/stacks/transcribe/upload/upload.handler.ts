@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import { fromBuffer } from 'file-type';
 import BaseHandler from '../../../common/base-handler';
 
 interface UploadEventData {
@@ -10,24 +11,24 @@ class UploadHandler extends BaseHandler {
   input: UploadEventData;
 
   parseEvent(event: any) {
-    console.log(event);
     this.input = { file: Buffer.from(event.body.replace(/^data:image\/\w+;base64,/, ""), 'base64') };
   }
 
   async run(): Promise<any> {
     try {
-      console.log(process.env);
-      var s3Bucket = new AWS.S3({ params: { Bucket: process.env.bucket } });
+      const fileType = await fromBuffer(this.input.file);
 
+      var s3Bucket = new AWS.S3({ params: { Bucket: process.env.bucket } });
       const data: AWS.S3.PutObjectRequest = {
         Key: Date.now().toString(),
         Body: this.input.file,
         Bucket: process.env.bucket ?? '',
         ContentEncoding: 'base64',
-        ContentType: 'image/jpeg',
+        ContentType: fileType?.mime
       };
 
-      await s3Bucket.putObject(data).promise();
+      const putObjectResponse = await s3Bucket.putObject(data).promise();
+      console.log(putObjectResponse);
 
       var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
       const id = uuidv4();

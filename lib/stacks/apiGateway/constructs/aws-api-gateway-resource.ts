@@ -17,7 +17,7 @@ export class AwsApiGatewayResource extends Resource {
         this.addMethod(type, request.lambdaIntegration, {
             methodResponses: request.methodResponses.map(code => ({ statusCode: code.statusCode.toString() })),
             authorizationType: request.authorizationType,
-            authorizer: request.authorizerId ? { authorizerId: request.authorizerId } : undefined
+            authorizer: request.authorizerId ? { authorizerId: request.authorizerId } : undefined,
         });
 
         return this;
