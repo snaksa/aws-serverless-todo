@@ -2,6 +2,7 @@ import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { fromBuffer } from 'file-type';
 import BaseHandler from '../../../common/base-handler';
+import { StartTranscriptionJobRequest } from 'aws-sdk/clients/transcribeservice';
 
 interface UploadEventData {
   file: Buffer;
@@ -18,9 +19,10 @@ class UploadHandler extends BaseHandler {
     try {
       const fileType = await fromBuffer(this.input.file);
 
+      const key = Date.now().toString();
       var s3Bucket = new AWS.S3({ params: { Bucket: process.env.bucket } });
       const data: AWS.S3.PutObjectRequest = {
-        Key: Date.now().toString(),
+        Key: key,
         Body: this.input.file,
         Bucket: process.env.bucket ?? '',
         ContentEncoding: 'base64',
@@ -29,6 +31,19 @@ class UploadHandler extends BaseHandler {
 
       const putObjectResponse = await s3Bucket.putObject(data).promise();
       console.log(putObjectResponse);
+
+      const params: StartTranscriptionJobRequest = {
+        Media: {
+          MediaFileUri: `s3://${process.env.bucket}/${key}`
+        },
+        TranscriptionJobName: `${process.env.bucket}${key}`,
+        IdentifyLanguage: true,
+        OutputBucketName: process.env.bucket
+      };
+
+      const transcribe = new AWS.TranscribeService();
+      const r = await transcribe.startTranscriptionJob(params).promise();
+      console.log(r);
 
       var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
       const id = uuidv4();

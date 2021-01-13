@@ -2,12 +2,13 @@ import { Construct, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/
 import { Table } from '@aws-cdk/aws-dynamodb';
 import { Queue } from '@aws-cdk/aws-sqs';
 import { Bucket, BucketEncryption } from '@aws-cdk/aws-s3';
-import { LambdaDestination } from '@aws-cdk/aws-s3-notifications';
 import { AwsApiGateway } from '../apiGateway/constructs/aws-api-gateway';
 import { ApiGatewayMethodType } from '../../common/api-gateway-method-type';
 import { SpeechToTextLambda } from './lambda/speechToText';
 import { UploadRequest } from './upload/upload-request';
 import { CfnAuthorizer } from '@aws-cdk/aws-apigateway';
+import { Rule } from '@aws-cdk/aws-events';
+import { LambdaFunction } from '@aws-cdk/aws-events-targets';
 
 interface TranscribeStackProps extends StackProps {
   transcribeProcessingTable: Table;
@@ -32,7 +33,21 @@ export default class TranscribeStack extends Stack {
     });
 
     const handler = new SpeechToTextLambda(this, 'SpeechToTextLambda', { transcribeProcessingTable: props.transcribeProcessingTable }).lambda;
-    speechBucket.addObjectCreatedNotification(new LambdaDestination(handler));
+
+    new Rule(this, 'TranscribeStatusChange', {
+      targets: [new LambdaFunction(handler)],
+      eventPattern: {
+        source: [
+          'aws.transcribe'
+        ],
+        detailType: ['Transcribe Job State Change'],
+        detail: {
+          "TranscriptionJobStatus": [
+            "COMPLETED",
+          ],
+        }
+      }
+    });
 
     props.apiGateway
       .addResource('upload')

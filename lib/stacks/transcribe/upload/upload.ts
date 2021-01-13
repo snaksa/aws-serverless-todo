@@ -2,6 +2,7 @@ import { Construct } from "@aws-cdk/core";
 import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
 import { Table } from "@aws-cdk/aws-dynamodb";
 import { Bucket } from "@aws-cdk/aws-s3";
+import { PolicyStatement, Effect } from "@aws-cdk/aws-iam";
 
 export class UploadLambda extends Construct {
     public lambda: NodejsFunction;
@@ -18,5 +19,24 @@ export class UploadLambda extends Construct {
 
         props.transcribeProcessingTable.grantWriteData(this.lambda);
         props.bucket.grantWrite(this.lambda);
+
+        this.lambda.addToRolePolicy(new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: [
+                'transcribe:*'
+            ],
+            resources: ["*"],
+        }));
+
+        // TODO: set separate bucket for results
+        this.lambda.addToRolePolicy(new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: [
+                's3:GetObject'
+            ],
+            resources: [
+                'arn:aws:s3:::*transcribe*'
+            ],
+        }));
     }
 }
