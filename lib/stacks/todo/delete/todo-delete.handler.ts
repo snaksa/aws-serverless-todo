@@ -1,10 +1,10 @@
 import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { DynamoDbHelper } from '../../../helpers/dynamoDbHelper';
 
 interface ToDoDeleteEventData {
     userId: string;
-    todo: string;
     id: string;
 }
 
@@ -15,10 +15,19 @@ interface UserData {
 class ToDoDeleteHandler extends BaseHandler {
     private input: ToDoDeleteEventData;
     private user: UserData;
+    private dynamoDb: DynamoDbHelper;
+
+    constructor() {
+        super();
+
+        this.dynamoDb = new DynamoDbHelper();
+    }
 
     parseEvent(event: any) {
-        this.input = JSON.parse(event.body) as ToDoDeleteEventData;
-        this.input.userId = event.requestContext.authorizer.claims.sub;
+        this.input = {
+            id: event.pathParameters.id,
+            userId: event.requestContext.authorizer.claims.sub
+        };
     }
 
     authorize(): boolean {
@@ -31,7 +40,6 @@ class ToDoDeleteHandler extends BaseHandler {
     }
 
     async run(): Promise<Response> {
-        var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
         var params = {
             ReturnValues: "ALL_OLD",
             TableName: process.env.table ?? '',
@@ -42,9 +50,9 @@ class ToDoDeleteHandler extends BaseHandler {
         };
 
         // Call DynamoDB to delete the item from the table
-        const dbDelete = await ddb.deleteItem(params).promise();
+        const dbDelete = await this.dynamoDb.deleteItem(params);
         if (dbDelete.$response.error) {
-            throw Error("Couldn't delete todo from DynamoDB");
+            throw Error("Could not delete record");
         }
 
         let snsParams = {

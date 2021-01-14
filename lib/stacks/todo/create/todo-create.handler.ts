@@ -1,6 +1,8 @@
 import * as AWS from 'aws-sdk';
+import { v4 as uuidv4 } from 'uuid';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { DynamoDbHelper } from '../../../helpers/dynamoDbHelper';
 
 interface ToDoCreateEventData {
     userId: string;
@@ -14,6 +16,13 @@ interface UserData {
 class ToDoCreateHandler extends BaseHandler {
     private input: ToDoCreateEventData;
     private user: UserData;
+    private dynamoDb: DynamoDbHelper;
+
+    constructor() {
+        super();
+        
+        this.dynamoDb = new DynamoDbHelper();
+    }
 
     parseEvent(event: any) {
         this.input = JSON.parse(event.body) as ToDoCreateEventData;
@@ -21,7 +30,6 @@ class ToDoCreateHandler extends BaseHandler {
     }
 
     authorize(): boolean {
-        // TODO: fetch user from DynamoDB by ID
         this.user = {
             id: this.input.userId
         };
@@ -30,25 +38,24 @@ class ToDoCreateHandler extends BaseHandler {
     }
 
     async run(): Promise<Response> {
-        var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
-        const id = `${Math.floor(Math.random() * 1000)}${Date.now()}`;
+        const id = uuidv4();
         const created = Date.now();
         var params = {
             TableName: process.env.table ?? '',
             Item: {
-                'Id': { S: id },
-                'UserId': { S: this.user.id },
-                'Todo': { S: this.input.todo },
-                'CreatedDate': { N: created.toString() }
+                'Id': id,
+                'UserId': this.user.id,
+                'Todo': this.input.todo,
+                'CreatedDate': created.toString()
             }
         };
 
         // Call DynamoDB to read the item from the table
-        const dbPut = await ddb.putItem(params).promise();
+        const dbPut = await this.dynamoDb.putItem(params);
 
         if (dbPut.$response.error) {
             console.log(dbPut.$response.error);
-            throw Error("Couldn't create todo in DynamoDB");
+            throw Error("Could not create record");
         }
 
         let snsParams = {
