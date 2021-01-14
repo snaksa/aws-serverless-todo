@@ -1,32 +1,44 @@
 import * as AWS from 'aws-sdk';
-import { v4 as uuidv4 } from 'uuid';
 import BaseHandler from '../../../common/base-handler';
 
+interface SpeechEventData {
+  id: string,
+};
+
 class SpeechHandler extends BaseHandler {
+  input: SpeechEventData;
   parseEvent(event: any) {
     console.log(event);
-    // TODO: get bucket name and object key
+    this.input = {
+      id: event.detail['TranscriptionJobName']
+    };
   }
 
   async run(): Promise<any> {
 
-    var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
-    const id = uuidv4();
-    const created = Date.now();
-    var dbParams = {
+    const s3 = new AWS.S3();
+    const object = await s3.getObject({
+      Bucket: process.env.bucket ?? '',
+      Key: `${this.input.id}.json`
+    }).promise();
+
+    const updateParams = {
       TableName: process.env.table ?? '',
-      Item: {
-        'Id': { S: id },
-        'OperationStatus': { S: 'pending' },
-        'CreatedDate': { N: created.toString() },
-        'CompletedDate': { N: "0" }
-      }
+      Key: {
+        'Id': this.input.id
+      },
+      UpdateExpression: "set CompletedDate = :completed, OperationStatus = :status, TranscribedText = :transcribedText",
+      ExpressionAttributeValues: {
+        ':completed': Date.now().toString(),
+        ':status': 'completed',
+        ':transcribedText': object.Body?.toString('ascii')
+      },
+      ReturnValues: "ALL_NEW"
     };
 
-    // Call DynamoDB to read the item from the table
-    const dbPut = await ddb.putItem(dbParams).promise();
-
-    // TODO: start transcribe job
+    var docClient = new AWS.DynamoDB.DocumentClient();
+    let update = await docClient.update(updateParams).promise();
+    console.log(update);
 
     return {
       message: 'finish'

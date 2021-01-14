@@ -19,7 +19,7 @@ class UploadHandler extends BaseHandler {
     try {
       const fileType = await fromBuffer(this.input.file);
 
-      const key = Date.now().toString();
+      const key = uuidv4();
       var s3Bucket = new AWS.S3({ params: { Bucket: process.env.bucket } });
       const data: AWS.S3.PutObjectRequest = {
         Key: key,
@@ -36,7 +36,7 @@ class UploadHandler extends BaseHandler {
         Media: {
           MediaFileUri: `s3://${process.env.bucket}/${key}`
         },
-        TranscriptionJobName: `${process.env.bucket}${key}`,
+        TranscriptionJobName: key,
         IdentifyLanguage: true,
         OutputBucketName: process.env.bucket
       };
@@ -46,26 +46,24 @@ class UploadHandler extends BaseHandler {
       console.log(r);
 
       var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
-      const id = uuidv4();
-      const created = Date.now();
       var dbParams = {
         TableName: process.env.table ?? '',
         Item: {
-          'Id': { S: id },
+          'Id': { S: key },
           'OperationStatus': { S: 'pending' },
-          'CreatedDate': { N: created.toString() },
-          'CompletedDate': { N: "0" }
+          'CreatedDate': { N: Date.now().toString() },
+          'CompletedDate': { N: "0" },
+          'TranscribedText': { S: '' }
         }
       };
 
       // Call DynamoDB to read the item from the table
       const dbPut = await ddb.putItem(dbParams).promise();
+      console.log(dbPut);
     }
     catch (err) {
       console.log(err);
     }
-
-    // TODO: start transcribe job
 
     return {
       message: 'finish'
