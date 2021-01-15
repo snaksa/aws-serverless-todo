@@ -1,22 +1,21 @@
 import { Construct, Stack, StackProps } from '@aws-cdk/core';
-import * as cognito from '@aws-cdk/aws-cognito';
-import * as dynamodb from '@aws-cdk/aws-dynamodb';
-
-import { CognitoConfirmationLambda } from './lambda/cognito-confirmation';
-import { CognitoPostAuthenticationLambda } from './lambda/cognito-post-authentication';
+import { UserPool, UserPoolClient } from '@aws-cdk/aws-cognito';
+import { Table } from '@aws-cdk/aws-dynamodb';
+import confirmationLambdaFactory, { CognitoConfirmationLambda } from './lambda/cognito-confirmation';
+import postAuthenticationLambdaFactory, { CognitoPostAuthenticationLambda } from './lambda/cognito-post-authentication';
 
 interface CognitoStackProps extends StackProps {
-  userTable: dynamodb.Table;
+  userTable: Table;
 };
 
 export default class CognitoStack extends Stack {
-  cognitoUserPool: cognito.UserPool;
-  cognitoUserPoolClient: cognito.UserPoolClient;
+  cognitoUserPool: UserPool;
+  cognitoUserPoolClient: UserPoolClient;
 
   constructor(scope: Construct, id: string, props: CognitoStackProps) {
     super(scope, id, props);
 
-    this.cognitoUserPool = new cognito.UserPool(this, 'TodoPool', {
+    this.cognitoUserPool = new UserPool(this, 'TodoPool', {
       userPoolName: 'todo-user-pool',
       selfSignUpEnabled: true,
       signInCaseSensitive: false,
@@ -44,7 +43,7 @@ export default class CognitoStack extends Stack {
       },
     });
 
-    this.cognitoUserPoolClient = new cognito.UserPoolClient(this, 'TodoClient', {
+    this.cognitoUserPoolClient = new UserPoolClient(this, 'TodoClient', {
       userPool: this.cognitoUserPool,
       userPoolClientName: 'todo-client',
       authFlows: {
@@ -54,11 +53,11 @@ export default class CognitoStack extends Stack {
   }
 
 
-  buildConfirmationLambda() {
-    return new CognitoConfirmationLambda(this, 'cognitoconfirmation').lambda;
+  buildConfirmationLambda(): CognitoConfirmationLambda {
+    return confirmationLambdaFactory(this, 'CognitoConfirmation');
   }
 
-  buildPostAuthenticationLambda(userTable: dynamodb.Table) {
-    return new CognitoPostAuthenticationLambda(this, 'cognitopostauth', { table: userTable }).lambda;
+  buildPostAuthenticationLambda(userTable: Table): CognitoPostAuthenticationLambda {
+    return postAuthenticationLambdaFactory(this, 'CognitoPostAuth', { table: userTable });
   }
 }

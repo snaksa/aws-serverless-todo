@@ -1,6 +1,5 @@
 import { Construct, Stack, StackProps } from '@aws-cdk/core';
 import { UserPoolClient } from '@aws-cdk/aws-cognito';
-import { Table } from '@aws-cdk/aws-dynamodb';
 import { CfnAuthorizer } from '@aws-cdk/aws-apigateway';
 import { Topic } from '@aws-cdk/aws-sns';
 import { DynamoEventSource } from '@aws-cdk/aws-lambda-event-sources';
@@ -14,14 +13,14 @@ import { TodosPutRequest } from './update/todo-put-request';
 import { TodosGetRequest } from './get/todo-get-request';
 import { TodosDeleteRequest } from './delete/todo-delete-request';
 import { ToDoStream } from './lambda/todo-stream';
+import { ItemTable } from '../dynamoDb/tables';
 
 interface ToDoStackProps extends StackProps {
   apiGateway: AwsApiGateway;
-  itemTable: Table;
+  itemTable: ItemTable;
   cognitoUserPoolClient: UserPoolClient;
   topic: Topic;
   cognitoAuthorizer: CfnAuthorizer,
-  itemTableUserIdGCI: string,
 }
 
 export default class ToDoStack extends Stack {
@@ -33,7 +32,7 @@ export default class ToDoStack extends Stack {
 
     todos
       .addResourceMethod(ApiGatewayMethodType.POST, new TodosCreateRequest(this, props.itemTable, props.topic, props.cognitoAuthorizer.ref))
-      .addResourceMethod(ApiGatewayMethodType.GET, new TodosFetchAllRequest(this, props.itemTable, props.cognitoAuthorizer.ref, props.itemTableUserIdGCI));
+      .addResourceMethod(ApiGatewayMethodType.GET, new TodosFetchAllRequest(this, props.itemTable, props.cognitoAuthorizer.ref, props.itemTable.GSI_UserId));
 
     todos
       .addChildResource('{id}')
