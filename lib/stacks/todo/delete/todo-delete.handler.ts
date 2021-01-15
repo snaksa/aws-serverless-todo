@@ -44,8 +44,8 @@ class ToDoDeleteHandler extends BaseHandler {
             ReturnValues: "ALL_OLD",
             TableName: process.env.table ?? '',
             Key: {
-                'Id': { S: this.input.id },
-                'UserId': { S: this.user.id }
+                'Id': this.input.id,
+                'UserId': this.user.id
             }
         };
 
