@@ -1,22 +1,33 @@
 import { Construct } from "@aws-cdk/core";
-import * as dynamodb from "@aws-cdk/aws-dynamodb";
+import { StreamViewType, AttributeType, ProjectionType } from "@aws-cdk/aws-dynamodb";
 import BaseTable from "./base-table";
 
 export class ItemTable extends BaseTable {
-    tableName = 'TodoItemCollection';
-    stream = dynamodb.StreamViewType.KEYS_ONLY;
-    partitionKey = {
-        name: 'Id',
-        type: dynamodb.AttributeType.STRING,
-    };
-    sortKey = {
-        name: 'UserId',
-        type: dynamodb.AttributeType.STRING,
-    };
+
+    readonly GSI_UserId: string = 'TodoItemCollectionUserIdGSI';
 
     constructor(scope: Construct, id: string = 'TodoItemCollection') {
-        super();
+        super(scope, id, {
+            tableName: id,
+            stream: StreamViewType.KEYS_ONLY,
+            partitionKey: {
+                name: 'Id',
+                type: AttributeType.STRING,
+            },
+            sortKey: {
+                name: 'UserId',
+                type: AttributeType.STRING,
+            },
+        });
 
-        this.configureTable(scope, id);
+        // Add Global Secondary Index to search by UserId
+        this.addGlobalSecondaryIndex({
+            indexName: this.GSI_UserId,
+            projectionType: ProjectionType.ALL,
+            partitionKey: {
+                name: 'UserId',
+                type: AttributeType.STRING
+            },
+        });
     }
 }

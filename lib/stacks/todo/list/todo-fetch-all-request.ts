@@ -7,12 +7,13 @@ import { TodoFetchAllLambda } from './todo-fetch-all';
 export class TodosFetchAllRequest extends BaseRequest {
     authorizationType = apigateway.AuthorizationType.COGNITO;
 
-    constructor(scope: Construct, table: dynamodb.Table, authorizerId: string) {
+    constructor(scope: Construct, table: dynamodb.Table, authorizerId: string, itemTableUserIdGCI: string) {
         super();
 
         this.authorizerId = authorizerId;
         const handler = new TodoFetchAllLambda(scope, 'TodoList', {
             table: table,
+            itemTableUserIdGCI: itemTableUserIdGCI,
         });
 
         this.configureLambdaIntegration(handler.lambda);

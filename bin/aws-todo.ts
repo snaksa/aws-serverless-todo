@@ -38,7 +38,8 @@ const todoStack = new ToDoStack(app, 'ToDoStack', {
     apiGateway: apiGatewayStack.apiGateway,
     cognitoUserPoolClient: cognitoStack.cognitoUserPoolClient,
     cognitoAuthorizer: apiGatewayStack.cognitoAuthorizer,
-    topic: snsStack.topic
+    topic: snsStack.topic,
+    itemTableUserIdGCI: dbStack.itemTable.GSI_UserId,
 });
 
 const transcribeStack = new TranscribeStack(app, 'TranscribeStack', {

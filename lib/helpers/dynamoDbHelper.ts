@@ -7,6 +7,14 @@ export class DynamoDbHelper {
         this.dynamoDb = new DocumentClient();
     }
 
+    getAll(params: DocumentClient.QueryInput) {
+        return this.dynamoDb.query(params).promise();
+    }
+
+    getItem(params: DocumentClient.GetItemInput) {
+        return this.dynamoDb.get(params).promise();
+    }
+
     putItem(params: DocumentClient.PutItemInput) {
         return this.dynamoDb.put(params).promise();
     }

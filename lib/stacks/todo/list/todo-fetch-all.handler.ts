@@ -1,6 +1,8 @@
 import * as AWS from 'aws-sdk';
+import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { DynamoDbHelper } from '../../../helpers/dynamoDbHelper';
 
 interface ToDoListEventData {
     userId: string;
@@ -11,8 +13,15 @@ interface UserData {
 }
 
 class ToDoListHandler extends BaseHandler {
+    private db: DynamoDbHelper;
     private input: ToDoListEventData;
     private user: UserData;
+
+    constructor() {
+        super();
+
+        this.db = new DynamoDbHelper();
+    }
 
     parseEvent(event: any) {
         this.input = {
@@ -30,27 +39,26 @@ class ToDoListHandler extends BaseHandler {
     }
 
     async run(): Promise<Response> {
-        var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
 
-        var params = {
+        const table = process.env.table ?? '';
+        var params: DocumentClient.QueryInput = {
             TableName: process.env.table ?? '',
+            IndexName: process.env.tableIndex ?? '',
+            KeyConditionExpression: "UserId = :userId",
             ExpressionAttributeValues: {
-                ':s': { S: this.user.id }
+                ":userId": this.user.id
             },
-            FilterExpression: "UserId = :s"
         };
 
         // Call DynamoDB to read the items from the table
-        const dbQuery = await ddb.scan(params).promise();
+        const dbQuery = await this.db.getAll(params);
         if (dbQuery.$response.error) {
             throw Error("Couldn't retrieve todo list from DynamoDB");
         }
 
         return {
             statusCode: ApiGatewayResponseCodes.OK,
-            body: {
-                todos: dbQuery.Items ? dbQuery.Items.map((item) => AWS.DynamoDB.Converter.unmarshall(item)) : []
-            },
+            body: dbQuery,
         };
     }
 }

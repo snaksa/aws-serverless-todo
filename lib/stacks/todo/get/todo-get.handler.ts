@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { DynamoDbHelper } from '../../../helpers/dynamoDbHelper';
 
 
 interface ToDoUpdateEventData {
@@ -13,8 +14,15 @@ interface UserData {
 }
 
 class ToDoGetHandler extends BaseHandler {
+    private db: DynamoDbHelper;
     private input: ToDoUpdateEventData;
     private user: UserData;
+
+    constructor(){
+        super();
+
+        this.db = new DynamoDbHelper();
+    }
 
     parseEvent(event: any) {
         console.log(event);
@@ -34,17 +42,16 @@ class ToDoGetHandler extends BaseHandler {
     }
 
     async run(): Promise<Response> {
-        var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
         var params = {
             TableName: process.env.table ?? '',
             Key: {
-                'Id': { S: this.input.id },
-                'UserId': { S: this.user.id }
+                'Id': this.input.id,
+                'UserId': this.user.id
             }
         };
 
         // Call DynamoDB to get the item from the table
-        const dbGet = await ddb.getItem(params).promise();
+        const dbGet = await this.db.getItem(params);
         if (dbGet.$response.error) {
             throw Error("Couldn't get todo from DynamoDB");
         }
@@ -52,7 +59,7 @@ class ToDoGetHandler extends BaseHandler {
         return {
             statusCode: ApiGatewayResponseCodes.OK,
             body: {
-                todo: dbGet.Item ? AWS.DynamoDB.Converter.unmarshall(dbGet.Item) : {},
+                todo: dbGet.Item,
             }
         };
     }

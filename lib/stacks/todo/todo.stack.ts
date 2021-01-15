@@ -20,7 +20,8 @@ interface ToDoStackProps extends StackProps {
   itemTable: Table;
   cognitoUserPoolClient: UserPoolClient;
   topic: Topic;
-  cognitoAuthorizer: CfnAuthorizer
+  cognitoAuthorizer: CfnAuthorizer,
+  itemTableUserIdGCI: string,
 }
 
 export default class ToDoStack extends Stack {
@@ -32,7 +33,7 @@ export default class ToDoStack extends Stack {
 
     todos
       .addResourceMethod(ApiGatewayMethodType.POST, new TodosCreateRequest(this, props.itemTable, props.topic, props.cognitoAuthorizer.ref))
-      .addResourceMethod(ApiGatewayMethodType.GET, new TodosFetchAllRequest(this, props.itemTable, props.cognitoAuthorizer.ref));
+      .addResourceMethod(ApiGatewayMethodType.GET, new TodosFetchAllRequest(this, props.itemTable, props.cognitoAuthorizer.ref, props.itemTableUserIdGCI));
 
     todos
       .addChildResource('{id}')
