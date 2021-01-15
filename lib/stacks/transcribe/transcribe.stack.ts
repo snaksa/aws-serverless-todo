@@ -1,6 +1,5 @@
 import { Construct, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 import { Table } from '@aws-cdk/aws-dynamodb';
-import { Queue } from '@aws-cdk/aws-sqs';
 import { Bucket, BucketEncryption } from '@aws-cdk/aws-s3';
 import { AwsApiGateway } from '../apiGateway/constructs/aws-api-gateway';
 import { ApiGatewayMethodType } from '../../common/api-gateway-method-type';
@@ -12,7 +11,6 @@ import { LambdaFunction } from '@aws-cdk/aws-events-targets';
 
 interface TranscribeStackProps extends StackProps {
   transcribeProcessingTable: Table;
-  speechToTextQueue: Queue;
   apiGateway: AwsApiGateway;
   cognitoAuthorizer: CfnAuthorizer
 }
