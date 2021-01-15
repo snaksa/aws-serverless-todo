@@ -26,6 +26,6 @@ export class TodosCreateRequest extends BaseRequest {
             topic: topic
         });
 
-        this.configureLambdaIntegration(handler.lambda);
+        this.configureLambdaIntegration(handler);
     }
 }

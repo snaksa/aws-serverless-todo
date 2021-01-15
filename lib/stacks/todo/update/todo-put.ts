@@ -1,19 +1,21 @@
 import { Construct } from "@aws-cdk/core";
 import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
 import { Table } from "@aws-cdk/aws-dynamodb";
+import * as path from 'path';
 
-export class TodoPutLambda extends Construct {
-    public lambda: NodejsFunction;
+interface TodoPutLambdaProps {
+    table: Table;
+}
 
-    constructor(scope: Construct, id: string, props: { table: Table }) {
-        super(scope, id);
-
-        this.lambda = new NodejsFunction(this, 'handler', {
+export class TodoPutLambda extends NodejsFunction {
+    constructor(scope: Construct, id: string, props: TodoPutLambdaProps) {
+        super(scope, id, {
+            entry: path.resolve(__dirname, "./todo-put.handler.ts"),
             environment: {
                 table: props.table.tableName,
             }
         });
 
-        props.table.grantReadWriteData(this.lambda);
+        props.table.grantReadWriteData(this);
     }
 }

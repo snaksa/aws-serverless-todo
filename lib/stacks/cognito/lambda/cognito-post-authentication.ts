@@ -19,5 +19,3 @@ export class CognitoPostAuthenticationLambda extends NodejsFunction {
         props.table.grantWriteData(this);
     }
 }
-
-export default (scope: Construct, id: string, props: CognitoPostAuthenticationLambdaProps): CognitoPostAuthenticationLambda => new CognitoPostAuthenticationLambda(scope, id, props);

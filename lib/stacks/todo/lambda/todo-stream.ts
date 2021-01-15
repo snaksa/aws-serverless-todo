@@ -1,20 +1,23 @@
 import { Construct } from "@aws-cdk/core";
 import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
 import { LogGroup, LogStream } from '@aws-cdk/aws-logs';
+import * as path from 'path';
 
-export class ToDoStream extends Construct {
-    public lambda: NodejsFunction;
+interface ToDoStreamProps {
+    logGroup: LogGroup;
+    logStream: LogStream;
+}
 
-    constructor(scope: Construct, id: string, props: { logGroup: LogGroup, logStream: LogStream }) {
-        super(scope, id);
-
-        this.lambda = new NodejsFunction(this, 'handler', {
+export class ToDoStream extends NodejsFunction {
+    constructor(scope: Construct, id: string, props: ToDoStreamProps) {
+        super(scope, id, {
+            entry: path.resolve(__dirname, "./todo-stream.handler.ts"),
             environment: {
                 logGroupName: props.logGroup.logGroupName,
                 logStreamName: props.logStream.logStreamName
             }
         });
 
-        props.logGroup.grantWrite(this.lambda);
+        props.logGroup.grantWrite(this);
     }
 }

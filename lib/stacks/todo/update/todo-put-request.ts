@@ -15,6 +15,6 @@ export class TodosPutRequest extends BaseRequest {
             table: table,
         });
 
-        this.configureLambdaIntegration(handler.lambda);
+        this.configureLambdaIntegration(handler);
     }
 }

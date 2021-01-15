@@ -3,24 +3,27 @@ import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
 import { Table } from "@aws-cdk/aws-dynamodb";
 import { Bucket } from "@aws-cdk/aws-s3";
 import { PolicyStatement, Effect } from "@aws-cdk/aws-iam";
+import * as path from 'path';
 
-export class UploadLambda extends Construct {
-    public lambda: NodejsFunction;
+interface UploadLambdaProps {
+    transcribeProcessingTable: Table;
+    bucket: Bucket;
+}
 
-    constructor(scope: Construct, id: string, props: { transcribeProcessingTable: Table, bucket: Bucket }) {
-        super(scope, id);
-
-        this.lambda = new NodejsFunction(this, 'handler', {
+export class UploadLambda extends NodejsFunction {
+    constructor(scope: Construct, id: string, props: UploadLambdaProps) {
+        super(scope, id, {
+            entry: path.resolve(__dirname, "./upload.handler.ts"),
             environment: {
                 table: props.transcribeProcessingTable.tableName,
                 bucket: props.bucket.bucketName
             }
         });
 
-        props.transcribeProcessingTable.grantWriteData(this.lambda);
-        props.bucket.grantWrite(this.lambda);
+        props.transcribeProcessingTable.grantWriteData(this);
+        props.bucket.grantWrite(this);
 
-        this.lambda.addToRolePolicy(new PolicyStatement({
+        this.addToRolePolicy(new PolicyStatement({
             effect: Effect.ALLOW,
             actions: [
                 'transcribe:*'
@@ -29,7 +32,7 @@ export class UploadLambda extends Construct {
         }));
 
         // TODO: set separate bucket for results
-        this.lambda.addToRolePolicy(new PolicyStatement({
+        this.addToRolePolicy(new PolicyStatement({
             effect: Effect.ALLOW,
             actions: [
                 's3:GetObject'

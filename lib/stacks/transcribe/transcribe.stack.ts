@@ -30,7 +30,7 @@ export default class TranscribeStack extends Stack {
       ],
     });
 
-    const handler = new SpeechToTextLambda(this, 'SpeechToTextLambda', { transcribeProcessingTable: props.transcribeProcessingTable, bucket: speechBucket }).lambda;
+    const handler = new SpeechToTextLambda(this, 'SpeechToTextLambda', { transcribeProcessingTable: props.transcribeProcessingTable, bucket: speechBucket });
 
     new Rule(this, 'TranscribeStatusChange', {
       targets: [new LambdaFunction(handler)],

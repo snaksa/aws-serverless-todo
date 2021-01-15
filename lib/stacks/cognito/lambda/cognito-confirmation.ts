@@ -9,5 +9,3 @@ export class CognitoConfirmationLambda extends NodejsFunction {
         });
     }
 }
-
-export default (scope: Construct, id: string): CognitoConfirmationLambda => new CognitoConfirmationLambda(scope, id);

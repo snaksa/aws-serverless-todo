@@ -16,6 +16,6 @@ export class RegisterRequest extends BaseRequest {
             cognitoClientId: cognitoClientId
         });
 
-        this.configureLambdaIntegration(handler.lambda);
+        this.configureLambdaIntegration(handler);
     }
 }

@@ -17,6 +17,6 @@ export class UploadRequest extends BaseRequest {
             bucket: bucket
         });
 
-        this.configureLambdaIntegration(handler.lambda);
+        this.configureLambdaIntegration(handler);
     }
 }

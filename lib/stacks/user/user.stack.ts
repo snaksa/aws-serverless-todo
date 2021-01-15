@@ -35,6 +35,6 @@ export default class UserStack extends Stack {
       .addResource('me')
       .addResourceMethod(ApiGatewayMethodType.GET, new UserDetailsRequest(this, props.userTable, props.cognitoAuthorizer.ref));
 
-    new TodoCounterLambda(this, 'todocounter', { table: props.userTable, topic: props.topic }).lambda;
+    new TodoCounterLambda(this, 'todocounter', { table: props.userTable, topic: props.topic });
   }
 }

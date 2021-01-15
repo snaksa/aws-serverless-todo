@@ -1,8 +1,8 @@
 import { Construct, Stack, StackProps } from '@aws-cdk/core';
 import { UserPool, UserPoolClient } from '@aws-cdk/aws-cognito';
 import { Table } from '@aws-cdk/aws-dynamodb';
-import confirmationLambdaFactory, { CognitoConfirmationLambda } from './lambda/cognito-confirmation';
-import postAuthenticationLambdaFactory, { CognitoPostAuthenticationLambda } from './lambda/cognito-post-authentication';
+import { CognitoConfirmationLambda } from './lambda/cognito-confirmation';
+import { CognitoPostAuthenticationLambda } from './lambda/cognito-post-authentication';
 
 interface CognitoStackProps extends StackProps {
   userTable: Table;
@@ -54,10 +54,10 @@ export default class CognitoStack extends Stack {
 
 
   buildConfirmationLambda(): CognitoConfirmationLambda {
-    return confirmationLambdaFactory(this, 'CognitoConfirmation');
+    return new CognitoConfirmationLambda(this, 'CognitoConfirmation');
   }
 
   buildPostAuthenticationLambda(userTable: Table): CognitoPostAuthenticationLambda {
-    return postAuthenticationLambdaFactory(this, 'CognitoPostAuth', { table: userTable });
+    return new CognitoPostAuthenticationLambda (this, 'CognitoPostAuth', { table: userTable });
   }
 }

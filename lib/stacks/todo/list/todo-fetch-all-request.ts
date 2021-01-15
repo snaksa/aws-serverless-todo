@@ -16,6 +16,6 @@ export class TodosFetchAllRequest extends BaseRequest {
             itemTableUserIdGCI: itemTableUserIdGCI,
         });
 
-        this.configureLambdaIntegration(handler.lambda);
+        this.configureLambdaIntegration(handler);
     }
 }

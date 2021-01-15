@@ -2,21 +2,24 @@ import { Construct } from "@aws-cdk/core";
 import { NodejsFunction } from "@aws-cdk/aws-lambda-nodejs";
 import { Table } from "@aws-cdk/aws-dynamodb";
 import { Bucket } from "@aws-cdk/aws-s3";
+import * as path from 'path';
 
-export class SpeechToTextLambda extends Construct {
-    public lambda: NodejsFunction;
+interface SpeechToTextLambdaProps {
+    transcribeProcessingTable: Table;
+    bucket: Bucket;
+}
 
-    constructor(scope: Construct, id: string, props: { transcribeProcessingTable: Table, bucket: Bucket }) {
-        super(scope, id);
-
-        this.lambda = new NodejsFunction(this, 'handler', {
+export class SpeechToTextLambda extends NodejsFunction {
+    constructor(scope: Construct, id: string, props: SpeechToTextLambdaProps) {
+        super(scope, id, {
+            entry: path.resolve(__dirname, "./speechToText.handler.ts"),
             environment: {
                 table: props.transcribeProcessingTable.tableName,
                 bucket: props.bucket.bucketName
             }
         });
 
-        props.transcribeProcessingTable.grantWriteData(this.lambda);
-        props.bucket.grantRead(this.lambda);
+        props.transcribeProcessingTable.grantWriteData(this);
+        props.bucket.grantRead(this);
     }
 }

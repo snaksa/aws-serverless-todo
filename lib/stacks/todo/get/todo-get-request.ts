@@ -15,6 +15,6 @@ export class TodosGetRequest extends BaseRequest {
             table: table,
         });
 
-        this.configureLambdaIntegration(handler.lambda);
+        this.configureLambdaIntegration(handler);
     }
 }
