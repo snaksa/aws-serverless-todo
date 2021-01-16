@@ -3,13 +3,23 @@ import { v4 as uuidv4 } from 'uuid';
 import { fromBuffer } from 'file-type';
 import BaseHandler from '../../../common/base-handler';
 import { StartTranscriptionJobRequest } from 'aws-sdk/clients/transcribeservice';
+import { S3Helper } from '../../../helpers/s3-helper';
+import { QueryBuilder } from '../../../helpers/query-builder';
 
 interface UploadEventData {
   file: Buffer;
 }
 
 class UploadHandler extends BaseHandler {
+  private s3Helper: S3Helper;
+
   input: UploadEventData;
+
+  constructor() {
+    super();
+
+    this.s3Helper = new S3Helper();
+  }
 
   parseEvent(event: any) {
     this.input = { file: Buffer.from(event.body.replace(/^data:image\/\w+;base64,/, ""), 'base64') };
@@ -20,16 +30,14 @@ class UploadHandler extends BaseHandler {
       const fileType = await fromBuffer(this.input.file);
 
       const key = uuidv4();
-      var s3Bucket = new AWS.S3({ params: { Bucket: process.env.bucket } });
-      const data: AWS.S3.PutObjectRequest = {
+      const putObjectResponse = await this.s3Helper.putObject({
         Key: key,
         Body: this.input.file,
         Bucket: process.env.bucket ?? '',
         ContentEncoding: 'base64',
         ContentType: fileType?.mime
-      };
+      });
 
-      const putObjectResponse = await s3Bucket.putObject(data).promise();
       console.log(putObjectResponse);
 
       const params: StartTranscriptionJobRequest = {
@@ -45,21 +53,17 @@ class UploadHandler extends BaseHandler {
       const r = await transcribe.startTranscriptionJob(params).promise();
       console.log(r);
 
-      var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
-      var dbParams = {
-        TableName: process.env.table ?? '',
-        Item: {
+      const query = await new QueryBuilder()
+        .table(process.env.table ?? '')
+        .create({
           'Id': { S: key },
           'OperationStatus': { S: 'pending' },
           'CreatedDate': { N: Date.now().toString() },
           'CompletedDate': { N: "0" },
           'TranscribedText': { S: '' }
-        }
-      };
+        });
 
-      // Call DynamoDB to read the item from the table
-      const dbPut = await ddb.putItem(dbParams).promise();
-      console.log(dbPut);
+      console.log(query);
     }
     catch (err) {
       console.log(err);
