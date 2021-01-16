@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { QueryBuilder } from '../../../helpers/query-builder';
 
 interface ToDoUpdateEventData {
     userId: string;
@@ -48,32 +49,25 @@ class ToDoUpdateHandler extends BaseHandler {
         }
 
         if (dbGet.Item) {
-            var docClient = new AWS.DynamoDB.DocumentClient()
-            // Update the item, unconditionally,
-
-            let updateParams = {
-                TableName: process.env.table ?? '',
-                Key: {
+            const query = await new QueryBuilder()
+                .table(process.env.table ?? '')
+                .where({
                     "Id": this.input.id,
                     "UserId": this.user.id
-                },
-                UpdateExpression: "set Todo = :t",
-                ExpressionAttributeValues: {
-                    ":t": this.input.todo,
-                },
-                ReturnValues: "ALL_NEW"
-            };
+                })
+                .update({
+                    'Todo': this.input.todo
+                });
 
-            let update = await docClient.update(updateParams).promise();
-            if (update.$response.error) {
-                console.log(update.$response.error);
+            if (query.$response.error) {
+                console.log(query.$response.error);
                 throw Error("Couldn't update todo in DynamoDB");
             }
 
             return {
                 statusCode: ApiGatewayResponseCodes.OK,
                 body: {
-                    todo: update.Attributes ? update.Attributes : {},
+                    todo: query.Attributes ? query.Attributes : {},
                 }
             };
         }

@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { QueryBuilder } from '../../../helpers/query-builder';
 
 interface RegisterEventData {
     email: string;
@@ -37,22 +38,17 @@ class RegisterHandler extends BaseHandler {
             throw Error("Couldn't create user");
         }
 
-        var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
+        const query = await new QueryBuilder()
+            .table(process.env.table ?? '')
+            .create({
+                'Id': signupResponse.UserSub,
+                'Email': this.input.email,
+                'SignUpDate': Date.now().toString(),
+                'LastLogin': "0",
+                'TotalItems': "0",
+            });
 
-        var params = {
-            TableName: process.env.table ?? '',
-            Item: {
-                'Id': { S: signupResponse.UserSub },
-                'Email': { S: this.input.email },
-                'SignUpDate': { N: Date.now().toString() },
-                'LastLogin': { N: "0" },
-                'TotalItems': { N: "0" },
-            }
-        };
-
-        const dbPut = await ddb.putItem(params).promise();
-
-        if (dbPut.$response.error) {
+        if (query.$response.error) {
             throw Error("Couldn't create user");
         }
 

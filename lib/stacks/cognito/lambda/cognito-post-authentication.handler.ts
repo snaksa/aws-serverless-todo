@@ -1,22 +1,16 @@
-import * as AWS from 'aws-sdk';
+import { QueryBuilder } from '../../../helpers/query-builder';
 
 export const handler = async (event: any, context: any) => {
     let id = event.request.userAttributes.sub;
-    let docClient = new AWS.DynamoDB.DocumentClient();
 
-    let updateParams = {
-        TableName: process.env.table ?? '',
-        Key: {
+    await new QueryBuilder()
+        .table(process.env.table ?? '')
+        .where({
             "Id": id,
-        },
-        UpdateExpression: "set LastLogin = :t",
-        ExpressionAttributeValues: {
-            ":t":  Date.now().toString(),
-        },
-        ReturnValues: "ALL_NEW"
-    };
-
-    await docClient.update(updateParams).promise();
+        })
+        .update({
+            'LastLogin': Date.now().toString()
+        });
 
     context.done(null, event);
 };

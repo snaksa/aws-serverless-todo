@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
-import { DynamoDbHelper } from '../../../helpers/dynamoDbHelper';
+import { QueryBuilder } from '../../../helpers/query-builder';
 
 interface ToDoDeleteEventData {
     userId: string;
@@ -15,13 +15,6 @@ interface UserData {
 class ToDoDeleteHandler extends BaseHandler {
     private input: ToDoDeleteEventData;
     private user: UserData;
-    private dynamoDb: DynamoDbHelper;
-
-    constructor() {
-        super();
-
-        this.dynamoDb = new DynamoDbHelper();
-    }
 
     parseEvent(event: any) {
         this.input = {
@@ -40,18 +33,15 @@ class ToDoDeleteHandler extends BaseHandler {
     }
 
     async run(): Promise<Response> {
-        var params = {
-            ReturnValues: "ALL_OLD",
-            TableName: process.env.table ?? '',
-            Key: {
-                'Id': this.input.id,
-                'UserId': this.user.id
-            }
-        };
+        const query = await new QueryBuilder()
+        .table(process.env.table ?? '')
+        .where({
+            'Id': this.input.id,
+            'UserId': this.user.id
+        })
+        .delete();
 
-        // Call DynamoDB to delete the item from the table
-        const dbDelete = await this.dynamoDb.deleteItem(params);
-        if (dbDelete.$response.error) {
+        if (query.$response.error) {
             throw Error("Could not delete record");
         }
 

@@ -1,7 +1,6 @@
-import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
-
+import { QueryBuilder } from '../../../helpers/query-builder';
 
 interface UserDetailsEventData {
     userId: string;
@@ -31,31 +30,24 @@ class UserDetailsHandler extends BaseHandler {
     }
 
     async run(): Promise<Response> {
-        var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
+        const query = await new QueryBuilder()
+            .table(process.env.table ?? '')
+            .where({
+                'Id': this.user.id,
+            })
+            .one();
 
-        var params = {
-            TableName: process.env.table ?? '',
-            Key: {
-                'Id': { S: this.user.id }
-            }
-        };
-
-        // Call DynamoDB to read the item from the table
-        const dbRead = await ddb.getItem(params).promise();
-
-        if (dbRead.$response.error) {
-            throw new Error(dbRead.$response.error.message);
+        if (query.$response.error) {
+            throw new Error(query.$response.error.message);
         }
 
-        if (!dbRead.Item) {
+        if (!query.Item) {
             throw Error('Could not find user');
         }
 
         return {
             statusCode: ApiGatewayResponseCodes.OK,
-            body: {
-                data: AWS.DynamoDB.Converter.unmarshall(dbRead.Item),
-            },
+            body: query.Item,
         };
     }
 }

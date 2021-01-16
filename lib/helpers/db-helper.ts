@@ -19,6 +19,10 @@ export class DynamoDbHelper {
         return this.dynamoDb.put(params).promise();
     }
 
+    updateItem(params: DocumentClient.UpdateItemInput) {
+        return this.dynamoDb.update(params).promise();
+    }
+
     deleteItem(params: DocumentClient.DeleteItemInput) {
         return this.dynamoDb.delete(params).promise();
     }
