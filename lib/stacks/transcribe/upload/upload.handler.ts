@@ -56,11 +56,11 @@ class UploadHandler extends BaseHandler {
       const query = await new QueryBuilder()
         .table(process.env.table ?? '')
         .create({
-          'Id': { S: key },
-          'OperationStatus': { S: 'pending' },
-          'CreatedDate': { N: Date.now().toString() },
-          'CompletedDate': { N: "0" },
-          'TranscribedText': { S: '' }
+          'Id': key,
+          'OperationStatus': 'pending',
+          'CreatedDate': Date.now().toString(),
+          'CompletedDate': "0",
+          'TranscribedText': ''
         });
 
       console.log(query);
