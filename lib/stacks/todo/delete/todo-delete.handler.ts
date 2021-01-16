@@ -1,7 +1,7 @@
-import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
 import { QueryBuilder } from '../../../helpers/query-builder';
+import { SnsHelper } from '../../../helpers/sns-helper';
 
 interface ToDoDeleteEventData {
     userId: string;
@@ -13,8 +13,15 @@ interface UserData {
 }
 
 class ToDoDeleteHandler extends BaseHandler {
+    private snsHelper : SnsHelper
     private input: ToDoDeleteEventData;
     private user: UserData;
+
+    constructor() {
+        super();
+        
+        this.snsHelper = new SnsHelper();
+    }
 
     parseEvent(event: any) {
         this.input = {
@@ -45,13 +52,10 @@ class ToDoDeleteHandler extends BaseHandler {
             throw Error("Could not delete record");
         }
 
-        let snsParams = {
-            Message: JSON.stringify({ id: this.user.id, type: 0 }),
-            TopicArn: process.env.topic
-        };
-
-        // Create promise and SNS service object
-        await new AWS.SNS({ apiVersion: '2010-03-31' }).publish(snsParams).promise();
+        await this.snsHelper.publish(
+            process.env.topic ?? '',
+            { id: this.user.id, type: 0 }
+        );
 
         return {
             statusCode: ApiGatewayResponseCodes.NO_CONTENT,

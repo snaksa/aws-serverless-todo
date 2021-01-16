@@ -1,8 +1,8 @@
-import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
 import { QueryBuilder } from '../../../helpers/query-builder';
+import { SnsHelper } from '../../../helpers/sns-helper';
 
 interface ToDoCreateEventData {
     userId: string;
@@ -14,8 +14,15 @@ interface UserData {
 }
 
 class ToDoCreateHandler extends BaseHandler {
+    private snsHelper : SnsHelper
     private input: ToDoCreateEventData;
     private user: UserData;
+
+    constructor() {
+        super();
+        
+        this.snsHelper = new SnsHelper();
+    }
 
     parseEvent(event: any) {
         this.input = JSON.parse(event.body) as ToDoCreateEventData;
@@ -48,13 +55,10 @@ class ToDoCreateHandler extends BaseHandler {
             throw Error("Could not create record");
         }
 
-        let snsParams = {
-            Message: JSON.stringify({ id: this.user.id, type: 1 }),
-            TopicArn: process.env.topic
-        };
-
-        // Create promise and SNS service object
-        await new AWS.SNS({ apiVersion: '2010-03-31' }).publish(snsParams).promise();
+        await this.snsHelper.publish(
+            process.env.topic ?? '',
+            { id: this.user.id, type: 1 }
+        );
 
         return {
             statusCode: ApiGatewayResponseCodes.CREATED,
