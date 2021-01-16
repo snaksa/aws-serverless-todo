@@ -2,9 +2,10 @@ import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { fromBuffer } from 'file-type';
 import BaseHandler from '../../../common/base-handler';
-import { StartTranscriptionJobRequest } from 'aws-sdk/clients/transcribeservice';
 import { S3Helper } from '../../../helpers/s3-helper';
 import { QueryBuilder } from '../../../helpers/query-builder';
+import { TranscribeHelper } from '../../../helpers/transcribe-helper';
+import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 
 interface UploadEventData {
   file: Buffer;
@@ -12,6 +13,7 @@ interface UploadEventData {
 
 class UploadHandler extends BaseHandler {
   private s3Helper: S3Helper;
+  private transcribeHelper: TranscribeHelper;
 
   input: UploadEventData;
 
@@ -19,10 +21,11 @@ class UploadHandler extends BaseHandler {
     super();
 
     this.s3Helper = new S3Helper();
+    this.transcribeHelper = new TranscribeHelper();
   }
 
   parseEvent(event: any) {
-    this.input = { file: Buffer.from(event.body.replace(/^data:image\/\w+;base64,/, ""), 'base64') };
+    this.input = { file: Buffer.from(event.body, 'base64') };
   }
 
   async run(): Promise<any> {
@@ -40,17 +43,15 @@ class UploadHandler extends BaseHandler {
 
       console.log(putObjectResponse);
 
-      const params: StartTranscriptionJobRequest = {
+      const r = await this.transcribeHelper.startJob({
         Media: {
           MediaFileUri: `s3://${process.env.bucket}/${key}`
         },
         TranscriptionJobName: key,
         IdentifyLanguage: true,
         OutputBucketName: process.env.bucket
-      };
+      });
 
-      const transcribe = new AWS.TranscribeService();
-      const r = await transcribe.startTranscriptionJob(params).promise();
       console.log(r);
 
       const query = await new QueryBuilder()
@@ -64,13 +65,22 @@ class UploadHandler extends BaseHandler {
         });
 
       console.log(query);
+      return {
+        statusCode: ApiGatewayResponseCodes.OK,
+        body: {
+          jobId: key
+        }
+      };
     }
     catch (err) {
       console.log(err);
     }
 
     return {
-      message: 'finish'
+      statusCode: ApiGatewayResponseCodes.BAD_REQUEST,
+      body: {
+        message: 'error'
+      }
     };
   }
 }

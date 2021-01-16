@@ -3,11 +3,12 @@ import { Table } from '@aws-cdk/aws-dynamodb';
 import { Bucket, BucketEncryption } from '@aws-cdk/aws-s3';
 import { AwsApiGateway } from '../apiGateway/constructs/aws-api-gateway';
 import { ApiGatewayMethodType } from '../../common/api-gateway-method-type';
-import { SpeechToTextLambda } from './lambda/speechToText';
+import { CompletedEventLambda } from './lambda/completed-event';
 import { UploadRequest } from './upload/upload-request';
 import { CfnAuthorizer } from '@aws-cdk/aws-apigateway';
 import { Rule } from '@aws-cdk/aws-events';
 import { LambdaFunction } from '@aws-cdk/aws-events-targets';
+import { GetResultRequest } from './get-result/get-result-request';
 
 interface TranscribeStackProps extends StackProps {
   transcribeProcessingTable: Table;
@@ -30,7 +31,7 @@ export default class TranscribeStack extends Stack {
       ],
     });
 
-    const handler = new SpeechToTextLambda(this, 'SpeechToTextLambda', { transcribeProcessingTable: props.transcribeProcessingTable, bucket: speechBucket });
+    const handler = new CompletedEventLambda(this, 'SpeechToTextLambda', { transcribeProcessingTable: props.transcribeProcessingTable, bucket: speechBucket });
 
     new Rule(this, 'TranscribeStatusChange', {
       targets: [new LambdaFunction(handler)],
@@ -50,5 +51,10 @@ export default class TranscribeStack extends Stack {
     props.apiGateway
       .addResource('upload')
       .addResourceMethod(ApiGatewayMethodType.POST, new UploadRequest(this, props.transcribeProcessingTable, speechBucket, props.cognitoAuthorizer.ref));
+
+      props.apiGateway
+      .addResource('get-result')
+      .addChildResource('{id}')
+      .addResourceMethod(ApiGatewayMethodType.GET, new GetResultRequest(this, props.transcribeProcessingTable, props.cognitoAuthorizer.ref));
   }
 }
