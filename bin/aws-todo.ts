@@ -8,6 +8,7 @@ import ApiGatewayStack from '../lib/stacks/apiGateway/apiGateway.stack';
 import UserStack from '../lib/stacks/user/user.stack';
 import ToDoStack from '../lib/stacks/todo/todo.stack';
 import TranscribeStack from '../lib/stacks/transcribe/transcribe.stack';
+import PollyStack from '../lib/stacks/polly/polly.stack';
 
 const app = new cdk.App();
 
@@ -42,5 +43,11 @@ const todoStack = new ToDoStack(app, 'ToDoStack', {
 const transcribeStack = new TranscribeStack(app, 'TranscribeStack', {
     apiGateway: apiGatewayStack.apiGateway,
     transcribeProcessingTable: dbStack.transcribeProcessingTable,
+    cognitoAuthorizer: apiGatewayStack.cognitoAuthorizer
+});
+
+const pollyStack = new PollyStack(app, 'PollyStack', {
+    apiGateway: apiGatewayStack.apiGateway,
+    pollyProcessingTable: dbStack.pollyProcessingTable,
     cognitoAuthorizer: apiGatewayStack.cognitoAuthorizer
 });
