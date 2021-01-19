@@ -29,7 +29,7 @@ const userStack = new UserStack(app, 'UserStack', {
     apiGateway: apiGatewayStack.apiGateway,
     cognitoUserPoolClient: cognitoStack.cognitoUserPoolClient,
     cognitoAuthorizer: apiGatewayStack.cognitoAuthorizer,
-    topic: snsStack.topic
+    topic: snsStack.todoCreateDeleteTopic
 });
 
 const todoStack = new ToDoStack(app, 'ToDoStack', {
@@ -37,7 +37,7 @@ const todoStack = new ToDoStack(app, 'ToDoStack', {
     apiGateway: apiGatewayStack.apiGateway,
     cognitoUserPoolClient: cognitoStack.cognitoUserPoolClient,
     cognitoAuthorizer: apiGatewayStack.cognitoAuthorizer,
-    topic: snsStack.topic
+    topic: snsStack.todoCreateDeleteTopic
 });
 
 const transcribeStack = new TranscribeStack(app, 'TranscribeStack', {
@@ -49,5 +49,6 @@ const transcribeStack = new TranscribeStack(app, 'TranscribeStack', {
 const pollyStack = new PollyStack(app, 'PollyStack', {
     apiGateway: apiGatewayStack.apiGateway,
     pollyProcessingTable: dbStack.pollyProcessingTable,
+    topic: snsStack.pollyJobCompletedTopic,
     cognitoAuthorizer: apiGatewayStack.cognitoAuthorizer
 });

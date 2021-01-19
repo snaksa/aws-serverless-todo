@@ -3,13 +3,18 @@ import { Topic } from '@aws-cdk/aws-sns';
 
 export default class SnsStack extends Stack {
 
-  topic: Topic;
+  todoCreateDeleteTopic: Topic;
+  pollyJobCompletedTopic: Topic;
 
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    this.topic = new Topic(this, 'Topic', {
-      displayName: 'ToDo create delete'
+    this.todoCreateDeleteTopic = new Topic(this, 'ToDoCreateDeleteTopic', {
+      displayName: 'ToDo Create Delete'
+    });
+
+    this.pollyJobCompletedTopic = new Topic(this, 'PollyCompletedTopic', {
+      displayName: 'Polly Job Completed'
     });
   }
 }
