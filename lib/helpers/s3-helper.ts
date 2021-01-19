@@ -14,4 +14,13 @@ export class S3Helper {
     putObject(params: AWS.S3.PutObjectRequest) {
         return this.s3.putObject(params).promise();
     }
+
+    getPresignedUrl(uri: string) {
+        const [bucket, key] = uri.replace('s3://', '').split('/');
+        return this.s3.getSignedUrlPromise('getObject', {
+            Bucket: bucket,
+            Key: key,
+            Expires: 60 * 60, // one hour
+        });
+    }
 }
