@@ -7,7 +7,7 @@ export default class BaseTable extends Table {
         const defaultProps = {
             tableName: 'TableName',
             partitionKey: {
-                name: 'Id',
+                name: 'id',
                 type: AttributeType.STRING,
             },
             billingMode: BillingMode.PAY_PER_REQUEST,

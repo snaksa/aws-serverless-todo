@@ -7,7 +7,7 @@ export class TranscribeProcessingTable extends BaseTable {
         super(scope, id, {
             tableName: id,
             partitionKey: {
-                name: 'Id',
+                name: 'id',
                 type: AttributeType.STRING,
             }
         });

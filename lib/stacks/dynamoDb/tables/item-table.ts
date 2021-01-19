@@ -11,11 +11,11 @@ export class ItemTable extends BaseTable {
             tableName: id,
             stream: StreamViewType.KEYS_ONLY,
             partitionKey: {
-                name: 'Id',
+                name: 'id',
                 type: AttributeType.STRING,
             },
             sortKey: {
-                name: 'UserId',
+                name: 'userId',
                 type: AttributeType.STRING,
             },
         });
@@ -25,7 +25,7 @@ export class ItemTable extends BaseTable {
             indexName: this.GSI_UserId,
             projectionType: ProjectionType.ALL,
             partitionKey: {
-                name: 'UserId',
+                name: 'userId',
                 type: AttributeType.STRING
             },
         });

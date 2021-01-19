@@ -37,8 +37,8 @@ class ToDoUpdateHandler extends BaseHandler {
         var params = {
             TableName: process.env.table ?? '',
             Key: {
-                'Id': { S: this.input.id },
-                'UserId': { S: this.user.id }
+                'id': { S: this.input.id },
+                'userId': { S: this.user.id }
             }
         };
 
@@ -52,11 +52,11 @@ class ToDoUpdateHandler extends BaseHandler {
             const query = await new QueryBuilder()
                 .table(process.env.table ?? '')
                 .where({
-                    "Id": this.input.id,
-                    "UserId": this.user.id
+                    "id": this.input.id,
+                    "userId": this.user.id
                 })
                 .update({
-                    'Todo': this.input.todo
+                    'todo': this.input.todo
                 });
 
             if (query.$response.error) {

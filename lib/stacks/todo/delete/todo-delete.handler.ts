@@ -43,8 +43,8 @@ class ToDoDeleteHandler extends BaseHandler {
         const query = await new QueryBuilder()
         .table(process.env.table ?? '')
         .where({
-            'Id': this.input.id,
-            'UserId': this.user.id
+            'id': this.input.id,
+            'userId': this.user.id
         })
         .delete();
 

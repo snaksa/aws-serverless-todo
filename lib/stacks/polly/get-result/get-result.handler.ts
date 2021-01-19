@@ -28,7 +28,7 @@ class GetResultHandler extends BaseHandler {
     const query = await new QueryBuilder()
       .table(process.env.table ?? '')
       .where({
-        'Id': this.input.id,
+        'id': this.input.id,
       })
       .one();
 
@@ -36,7 +36,7 @@ class GetResultHandler extends BaseHandler {
       throw Error("Could not get record");
     }
 
-    let fileUrl = query.Item ? query.Item['FileUrl'] : null;
+    let fileUrl = query.Item ? query.Item['fileUrl'] : null;
     if (fileUrl) {
       fileUrl = await this.s3Helper.getPresignedUrl(fileUrl);
     }

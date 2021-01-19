@@ -35,7 +35,7 @@ class ToDoListHandler extends BaseHandler {
             .table(process.env.table ?? '')
             .index(process.env.tableIndex ?? '')
             .where({
-                'UserId': this.user.id
+                'userId': this.user.id
             })
             .all();
 

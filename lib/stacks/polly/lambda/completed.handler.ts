@@ -28,12 +28,12 @@ class CompletedHandler extends BaseHandler {
             const update = await new QueryBuilder()
                 .table(process.env.table ?? '')
                 .where({
-                    'Id': notification.id
+                    'id': notification.id
                 })
                 .update({
-                    'CompletedDate': Date.now().toString(),
-                    'OperationStatus': 'completed',
-                    'FileUrl': notification.outputUri
+                    'completedDate': Date.now().toString(),
+                    'operationStatus': 'completed',
+                    'fileUrl': notification.outputUri
                 });
             console.log(update);
         }

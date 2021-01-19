@@ -7,7 +7,7 @@ export class UserTable extends BaseTable {
         super(scope, id, {
             tableName: id,
             partitionKey: {
-                name: 'Id',
+                name: 'id',
                 type: dynamodb.AttributeType.STRING,
             }
         });

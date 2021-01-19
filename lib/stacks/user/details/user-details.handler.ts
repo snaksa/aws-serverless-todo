@@ -33,7 +33,7 @@ class UserDetailsHandler extends BaseHandler {
         const query = await new QueryBuilder()
             .table(process.env.table ?? '')
             .where({
-                'Id': this.user.id,
+                'id': this.user.id,
             })
             .one();
 

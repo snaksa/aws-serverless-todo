@@ -6,10 +6,10 @@ export const handler = async (event: any, context: any) => {
     await new QueryBuilder()
         .table(process.env.table ?? '')
         .where({
-            "Id": id,
+            "id": id,
         })
         .update({
-            'LastLogin': Date.now().toString()
+            'lastLogin': Date.now().toString()
         });
 
     context.done(null, event);

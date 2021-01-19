@@ -7,7 +7,7 @@ export class PollyProcessingTable extends BaseTable {
         super(scope, id, {
             tableName: id,
             partitionKey: {
-                name: 'Id',
+                name: 'id',
                 type: AttributeType.STRING,
             }
         });

@@ -20,7 +20,7 @@ class GetResultHandler extends BaseHandler {
     const query = await new QueryBuilder()
       .table(process.env.table ?? '')
       .where({
-        'Id': this.input.id,
+        'id': this.input.id,
       })
       .one();
 

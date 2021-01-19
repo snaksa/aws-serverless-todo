@@ -34,12 +34,12 @@ class CompletedEventHandler extends BaseHandler {
     const update = await new QueryBuilder()
     .table(process.env.table ?? '')
     .where({
-      'Id': this.input.id
+      'id': this.input.id
     })
     .update({
-      'CompletedDate': Date.now().toString(),
-      'OperationStatus': 'completed',
-      'TranscribedText': object.Body?.toString('ascii')
+      'completedDate': Date.now().toString(),
+      'operationStatus': 'completed',
+      'transcribedText': object.Body?.toString('ascii')
     });
     console.log(update);
 

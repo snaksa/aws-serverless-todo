@@ -44,10 +44,10 @@ class ToDoCreateHandler extends BaseHandler {
         const query = await new QueryBuilder()
         .table(process.env.table ?? '')
         .create({
-            'Id': id,
-            'UserId': this.user.id,
-            'Todo': this.input.todo,
-            'CreatedDate': created.toString()
+            'id': id,
+            'userId': this.user.id,
+            'todo': this.input.todo,
+            'createdDate': created.toString()
         });
 
         if (query.$response.error) {

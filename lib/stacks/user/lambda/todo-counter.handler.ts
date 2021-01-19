@@ -9,9 +9,9 @@ export const handler = async (event: any) => {
     let updateParams = {
         TableName: process.env.table ?? '',
         Key: {
-            "Id": message.id,
+            "id": message.id,
         },
-        UpdateExpression: "set TotalItems = TotalItems + :t",
+        UpdateExpression: "set totalItems = totalItems + :t",
         ExpressionAttributeValues: {
             ":t": message.type == 0 ? -1 : 1,
         },

@@ -41,11 +41,11 @@ class RegisterHandler extends BaseHandler {
         const query = await new QueryBuilder()
             .table(process.env.table ?? '')
             .create({
-                'Id': signupResponse.UserSub,
-                'Email': this.input.email,
-                'SignUpDate': Date.now().toString(),
-                'LastLogin': "0",
-                'TotalItems': "0",
+                'id': signupResponse.UserSub,
+                'email': this.input.email,
+                'signUpDate': Date.now().toString(),
+                'lastLogin': "0",
+                'totalItems': "0",
             });
 
         if (query.$response.error) {
