@@ -44,8 +44,8 @@ class RegisterHandler extends BaseHandler {
                 'id': signupResponse.UserSub,
                 'email': this.input.email,
                 'signUpDate': Date.now().toString(),
-                'lastLogin': "0",
-                'totalItems': "0",
+                'lastLogin': 0,
+                'totalItems': 0,
             });
 
         if (query.$response.error) {
