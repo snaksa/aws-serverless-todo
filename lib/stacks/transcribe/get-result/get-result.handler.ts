@@ -1,6 +1,7 @@
 import BaseHandler from '../../../common/base-handler';
 import { QueryBuilder } from '../../../helpers/query-builder';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
+import { TranscribeProcess } from '../../../common/interface/transcribeProcess.interface';
 
 interface GetResultEventData {
   id: string;
@@ -17,21 +18,17 @@ class GetResultHandler extends BaseHandler {
   }
 
   async run(): Promise<any> {
-    const query = await new QueryBuilder()
+    const query = await new QueryBuilder<TranscribeProcess>()
       .table(process.env.table ?? '')
       .where({
         'id': this.input.id,
       })
       .one();
 
-    if (query.$response.error) {
-      throw Error("Could not get record");
-    }
-
     return {
       statusCode: ApiGatewayResponseCodes.OK,
       body: {
-        todo: query.Item,
+        todo: query,
       }
     };
   }

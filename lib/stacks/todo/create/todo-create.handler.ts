@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { ToDo } from '../../../common/interface';
 import { QueryBuilder } from '../../../helpers/query-builder';
 import { SnsHelper } from '../../../helpers/sns-helper';
 
@@ -41,19 +42,14 @@ class ToDoCreateHandler extends BaseHandler {
         const id = uuidv4();
         const created = Date.now();
 
-        const query = await new QueryBuilder()
+        const query = await new QueryBuilder<ToDo>()
         .table(process.env.table ?? '')
         .create({
-            'id': id,
-            'userId': this.user.id,
-            'todo': this.input.todo,
-            'createdDate': created.toString()
+            id: id,
+            userId: this.user.id,
+            todo: this.input.todo,
+            createdDate: created
         });
-
-        if (query.$response.error) {
-            console.log(query.$response.error);
-            throw Error("Could not create record");
-        }
 
         await this.snsHelper.publish(
             process.env.topic ?? '',

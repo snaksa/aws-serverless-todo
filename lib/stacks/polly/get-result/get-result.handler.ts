@@ -25,25 +25,20 @@ class GetResultHandler extends BaseHandler {
   }
 
   async run(): Promise<any> {
-    const query = await new QueryBuilder()
+    const result = await new QueryBuilder<PollyProcess>()
       .table(process.env.table ?? '')
       .where({
         'id': this.input.id,
       })
       .one();
 
-    if (query.$response.error) {
-      throw Error("Could not get record");
-    }
-
-    let fileUrl = query.Item ? query.Item['fileUrl'] : null;
-    if (fileUrl) {
-      fileUrl = await this.s3Helper.getPresignedUrl(fileUrl);
+    if (result.fileUrl) {
+      result.fileUrl = await this.s3Helper.getPresignedUrl(result.fileUrl);
     }
 
     return {
       statusCode: ApiGatewayResponseCodes.OK,
-      body: { ...query.Item, fileUrl },
+      body: result
     };
   }
 }

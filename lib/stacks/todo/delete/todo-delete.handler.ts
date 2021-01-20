@@ -1,5 +1,6 @@
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { ToDo } from '../../../common/interface';
 import { QueryBuilder } from '../../../helpers/query-builder';
 import { SnsHelper } from '../../../helpers/sns-helper';
 
@@ -40,17 +41,13 @@ class ToDoDeleteHandler extends BaseHandler {
     }
 
     async run(): Promise<Response> {
-        const query = await new QueryBuilder()
+        const query = await new QueryBuilder<ToDo>()
         .table(process.env.table ?? '')
         .where({
-            'id': this.input.id,
-            'userId': this.user.id
+            id: this.input.id,
+            userId: this.user.id
         })
         .delete();
-
-        if (query.$response.error) {
-            throw Error("Could not delete record");
-        }
 
         await this.snsHelper.publish(
             process.env.topic ?? '',

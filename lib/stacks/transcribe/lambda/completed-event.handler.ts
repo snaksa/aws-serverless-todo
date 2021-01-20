@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk';
 import BaseHandler from '../../../common/base-handler';
+import { TranscribeProcess } from '../../../common/interface/transcribeProcess.interface';
 import { QueryBuilder } from '../../../helpers/query-builder';
 import { S3Helper } from '../../../helpers/s3-helper';
 
@@ -31,15 +32,15 @@ class CompletedEventHandler extends BaseHandler {
       Key: `${this.input.id}.json`
     });
 
-    const update = await new QueryBuilder()
+    const update = await new QueryBuilder<TranscribeProcess>()
     .table(process.env.table ?? '')
     .where({
-      'id': this.input.id
+      id: this.input.id
     })
     .update({
-      'completedDate': Date.now().toString(),
-      'operationStatus': 'completed',
-      'transcribedText': object.Body?.toString('ascii')
+      completedDate: Date.now(),
+      operationStatus: 'completed',
+      transcribedText: object.Body?.toString('ascii')
     });
     console.log(update);
 

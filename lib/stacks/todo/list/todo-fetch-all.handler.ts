@@ -1,5 +1,6 @@
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { ToDo } from '../../../common/interface';
 import { QueryBuilder } from '../../../helpers/query-builder';
 
 interface ToDoListEventData {
@@ -31,18 +32,14 @@ class ToDoListHandler extends BaseHandler {
 
     async run(): Promise<Response> {
 
-        const query = await new QueryBuilder()
+        const query = await new QueryBuilder<ToDo>()
             .table(process.env.table ?? '')
             .index(process.env.tableIndex ?? '')
             .where({
-                'userId': this.user.id
+                userId: this.user.id
             })
             .all();
-
-        if (query.$response.error) {
-            throw Error("Couldn't retrieve todo list from DynamoDB");
-        }
-
+            
         return {
             statusCode: ApiGatewayResponseCodes.OK,
             body: query,

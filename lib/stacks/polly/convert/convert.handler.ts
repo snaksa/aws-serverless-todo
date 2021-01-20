@@ -25,8 +25,6 @@ class UploadHandler extends BaseHandler {
 
   async run(): Promise<any> {
     try {
-      const key = uuidv4();
-
       const pollyJob = await this.pollyHelper.startJob({
         OutputFormat: 'mp3',
         OutputS3BucketName: process.env.bucket ?? '',
@@ -39,16 +37,16 @@ class UploadHandler extends BaseHandler {
         throw Error('Could not start Polly job');
       }
 
-      const id = pollyJob.SynthesisTask?.TaskId;
+      const id = pollyJob.SynthesisTask?.TaskId ?? '';
 
-      const query = await new QueryBuilder()
+      const query = await new QueryBuilder<PollyProcess>()
         .table(process.env.table ?? '')
         .create({
-          'id': id,
-          'operationStatus': 'pending',
-          'createdDate': Date.now().toString(),
-          'completedDate': "0",
-          'fileUrl': ''
+          id: id,
+          operationStatus: 'pending',
+          createdDate: Date.now(),
+          completedDate: 0,
+          fileUrl: ''
         });
 
       console.log(query);
@@ -56,7 +54,7 @@ class UploadHandler extends BaseHandler {
       return {
         statusCode: ApiGatewayResponseCodes.OK,
         body: {
-          jobId: id
+          process: query
         }
       };
     }

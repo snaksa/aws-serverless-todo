@@ -1,6 +1,6 @@
 import { DynamoDbHelper } from "./db-helper";
 
-export class QueryBuilder {
+export class QueryBuilder<T> {
     db: DynamoDbHelper;
 
     // table to be queried
@@ -19,7 +19,7 @@ export class QueryBuilder {
         this.db = new DynamoDbHelper();
     }
 
-    table(tableName: string): QueryBuilder {
+    table(tableName: string): QueryBuilder<T> {
         if (!tableName) {
             throw Error('Table name not specified');
         }
@@ -29,7 +29,7 @@ export class QueryBuilder {
         return this;
     }
 
-    index(indexName: string): QueryBuilder {
+    index(indexName: string): QueryBuilder<T> {
         if (!indexName) {
             throw Error('Index name not specified');
         }
@@ -39,7 +39,7 @@ export class QueryBuilder {
         return this;
     }
 
-    select(fields: string[] = []): QueryBuilder {
+    select(fields: string[] = []): QueryBuilder<T> {
         if (!fields.length) {
             throw Error('Fields not provided');
         }
@@ -49,7 +49,7 @@ export class QueryBuilder {
         return this;
     }
 
-    where(conditions: { [index: string]: any; }): QueryBuilder {
+    where(conditions: { [index: string]: any; }): QueryBuilder<T> {
         if (!Object.entries(conditions).length) {
             throw Error('Conditions not provided');
         }
@@ -59,7 +59,7 @@ export class QueryBuilder {
         return this;
     }
 
-    one() {
+    async one(): Promise<T> {
         if (!this.tableName) Error('Table name not specified');
         if (!this.conditions) Error('Conditions not specified');
 
@@ -68,10 +68,16 @@ export class QueryBuilder {
             Key: this.conditions
         };
 
-        return this.db.getItem(params);
+        const result = await this.db.getItem(params);
+
+        if (result.$response.error || !result.Item) {
+            throw Error("Could not get record");
+        }
+
+        return result.$response.data as T;
     }
 
-    all() {
+    async all(): Promise<T[]> {
         if (!this.tableName) Error('Table name not specified');
         if (!this.conditions) Error('Conditions not specified');
 
@@ -89,10 +95,16 @@ export class QueryBuilder {
             ExpressionAttributeValues: conditionExpressionAttributes,
         };
 
-        return this.db.getAll(params);
+        const result = await this.db.getAll(params);
+
+        if (result.$response.error) {
+            throw Error("Could not get records");
+        }
+
+        return result.$response.data as T[];
     }
 
-    create(item: object) {
+    async create(item: T): Promise<boolean> {
         if (!this.tableName) Error('Table name not specified');
 
         var params = {
@@ -100,10 +112,16 @@ export class QueryBuilder {
             Item: item
         };
 
-        return this.db.putItem(params);
+        const result = await this.db.putItem(params);
+
+        if (result.$response.error) {
+            throw Error("Could not create record");
+        }
+
+        return true;
     }
 
-    update(item: object) {
+    async update(item: Partial<T>): Promise<T> {
         if (!this.tableName) Error('Table name not specified');
 
         const updateExpression: string[] = [];
@@ -121,10 +139,16 @@ export class QueryBuilder {
             ReturnValues: "ALL_NEW"
         };
 
-        return this.db.updateItem(params);
+        const result = await this.db.updateItem(params);
+
+        if (result.$response.error) {
+            throw Error("Could not update record");
+        }
+
+        return result.$response.data as T;
     }
 
-    delete() {
+    async delete(): Promise<T> {
         if (!this.tableName) Error('Table name not specified');
 
         var params = {
@@ -132,7 +156,13 @@ export class QueryBuilder {
             Key: this.conditions,
             ReturnValues: "ALL_OLD"
         };
-        
-        return this.db.deleteItem(params);
+
+        const result = await this.db.deleteItem(params);
+
+        if (result.$response.error) {
+            throw Error("Could not delete record");
+        }
+
+        return result.$response.data as T;
     }
 }

@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { User } from '../../../common/interface';
 import { QueryBuilder } from '../../../helpers/query-builder';
 
 interface RegisterEventData {
@@ -38,19 +39,15 @@ class RegisterHandler extends BaseHandler {
             throw Error("Couldn't create user");
         }
 
-        const query = await new QueryBuilder()
+        const query = await new QueryBuilder<User>()
             .table(process.env.table ?? '')
             .create({
-                'id': signupResponse.UserSub,
-                'email': this.input.email,
-                'signUpDate': Date.now().toString(),
-                'lastLogin': 0,
-                'totalItems': 0,
+                id: signupResponse.UserSub,
+                email: this.input.email,
+                signUpDate: Date.now(),
+                lastLogin: 0,
+                totalItems: 0,
             });
-
-        if (query.$response.error) {
-            throw Error("Couldn't create user");
-        }
 
         return {
             statusCode: ApiGatewayResponseCodes.OK,

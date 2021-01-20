@@ -1,6 +1,7 @@
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
 import { QueryBuilder } from '../../../helpers/query-builder';
+import { User } from '../../../common/interface';
 
 interface UserDetailsEventData {
     userId: string;
@@ -30,24 +31,16 @@ class UserDetailsHandler extends BaseHandler {
     }
 
     async run(): Promise<Response> {
-        const query = await new QueryBuilder()
+        const query = await new QueryBuilder<User>()
             .table(process.env.table ?? '')
             .where({
-                'id': this.user.id,
+                id: this.user.id,
             })
             .one();
 
-        if (query.$response.error) {
-            throw new Error(query.$response.error.message);
-        }
-
-        if (!query.Item) {
-            throw Error('Could not find user');
-        }
-
         return {
             statusCode: ApiGatewayResponseCodes.OK,
-            body: query.Item,
+            body: query,
         };
     }
 }

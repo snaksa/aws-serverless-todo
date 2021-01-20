@@ -25,15 +25,15 @@ class CompletedHandler extends BaseHandler {
 
     async run(): Promise<any> {
         for (const notification of this.input.notifications) {
-            const update = await new QueryBuilder()
+            const update = await new QueryBuilder<PollyProcess>()
                 .table(process.env.table ?? '')
                 .where({
-                    'id': notification.id
+                    id: notification.id
                 })
                 .update({
-                    'completedDate': Date.now().toString(),
-                    'operationStatus': 'completed',
-                    'fileUrl': notification.outputUri
+                    completedDate: Date.now(),
+                    operationStatus: 'completed',
+                    fileUrl: notification.outputUri
                 });
             console.log(update);
         }

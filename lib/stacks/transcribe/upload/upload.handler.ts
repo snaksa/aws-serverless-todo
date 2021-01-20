@@ -6,6 +6,7 @@ import { S3Helper } from '../../../helpers/s3-helper';
 import { QueryBuilder } from '../../../helpers/query-builder';
 import { TranscribeHelper } from '../../../helpers/transcribe-helper';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
+import { TranscribeProcess } from '../../../common/interface/transcribeProcess.interface';
 
 interface UploadEventData {
   file: Buffer;
@@ -54,14 +55,14 @@ class UploadHandler extends BaseHandler {
 
       console.log(r);
 
-      const query = await new QueryBuilder()
+      const query = await new QueryBuilder<TranscribeProcess>()
         .table(process.env.table ?? '')
         .create({
-          'id': key,
-          'operationStatus': 'pending',
-          'createdDate': Date.now().toString(),
-          'completedDate': "0",
-          'transcribedText': ''
+          id: key,
+          operationStatus: 'pending',
+          createdDate: Date.now(),
+          completedDate: 0,
+          transcribedText: ''
         });
 
       console.log(query);
