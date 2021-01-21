@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
 import { ToDo } from '../../../common/interface';
+import { Validator } from '../../../common/validators/validator';
 import { QueryBuilder } from '../../../helpers/query-builder';
 import { SnsHelper } from '../../../helpers/sns-helper';
 
@@ -15,13 +16,13 @@ interface UserData {
 }
 
 class ToDoCreateHandler extends BaseHandler {
-    private snsHelper : SnsHelper
+    private snsHelper: SnsHelper
     private input: ToDoCreateEventData;
     private user: UserData;
 
     constructor() {
         super();
-        
+
         this.snsHelper = new SnsHelper();
     }
 
@@ -30,12 +31,16 @@ class ToDoCreateHandler extends BaseHandler {
         this.input.userId = event.requestContext.authorizer.claims.sub;
     }
 
+    validate() {
+        return Validator.notEmpty(this.input.todo);
+    }
+
     authorize(): boolean {
         this.user = {
             id: this.input.userId
         };
 
-        return this.user.id ? true : false;
+        return Boolean(this.user.id);
     }
 
     async run(): Promise<Response> {
@@ -43,13 +48,13 @@ class ToDoCreateHandler extends BaseHandler {
         const created = Date.now();
 
         const query = await new QueryBuilder<ToDo>()
-        .table(process.env.table ?? '')
-        .create({
-            id: id,
-            userId: this.user.id,
-            todo: this.input.todo,
-            createdDate: created
-        });
+            .table(process.env.table ?? '')
+            .create({
+                id: id,
+                userId: this.user.id,
+                todo: this.input.todo,
+                createdDate: created
+            });
 
         await this.snsHelper.publish(
             process.env.topic ?? '',
@@ -59,11 +64,9 @@ class ToDoCreateHandler extends BaseHandler {
         return {
             statusCode: ApiGatewayResponseCodes.CREATED,
             body: {
-                todo: {
-                    id: id,
-                    todo: this.input.todo,
-                    created: created
-                },
+                id: id,
+                todo: this.input.todo,
+                created: created
             }
         };
     }

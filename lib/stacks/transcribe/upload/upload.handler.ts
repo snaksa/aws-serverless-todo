@@ -1,4 +1,3 @@
-import * as AWS from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { fromBuffer } from 'file-type';
 import BaseHandler from '../../../common/base-handler';
@@ -7,6 +6,7 @@ import { QueryBuilder } from '../../../helpers/query-builder';
 import { TranscribeHelper } from '../../../helpers/transcribe-helper';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import { TranscribeProcess } from '../../../common/interface/transcribeProcess.interface';
+import { Validator } from '../../../common/validators/validator';
 
 interface UploadEventData {
   file: Buffer;
@@ -29,58 +29,45 @@ class UploadHandler extends BaseHandler {
     this.input = { file: Buffer.from(event.body, 'base64') };
   }
 
+  validate() {
+    return Validator.notNull(this.input.file);
+  }
+
   async run(): Promise<any> {
-    try {
-      const fileType = await fromBuffer(this.input.file);
+    const fileType = await fromBuffer(this.input.file);
 
-      const key = uuidv4();
-      const putObjectResponse = await this.s3Helper.putObject({
-        Key: key,
-        Body: this.input.file,
-        Bucket: process.env.bucket ?? '',
-        ContentEncoding: 'base64',
-        ContentType: fileType?.mime
+    const key = uuidv4();
+    const putObjectResponse = await this.s3Helper.putObject({
+      Key: key,
+      Body: this.input.file,
+      Bucket: process.env.bucket ?? '',
+      ContentEncoding: 'base64',
+      ContentType: fileType?.mime
+    });
+
+    const r = await this.transcribeHelper.startJob({
+      Media: {
+        MediaFileUri: `s3://${process.env.bucket}/${key}`
+      },
+      TranscriptionJobName: key,
+      IdentifyLanguage: true,
+      OutputBucketName: process.env.bucket
+    });
+
+    const query = await new QueryBuilder<TranscribeProcess>()
+      .table(process.env.table ?? '')
+      .create({
+        id: key,
+        operationStatus: 'pending',
+        createdDate: Date.now(),
+        completedDate: 0,
+        transcribedText: ''
       });
-
-      console.log(putObjectResponse);
-
-      const r = await this.transcribeHelper.startJob({
-        Media: {
-          MediaFileUri: `s3://${process.env.bucket}/${key}`
-        },
-        TranscriptionJobName: key,
-        IdentifyLanguage: true,
-        OutputBucketName: process.env.bucket
-      });
-
-      console.log(r);
-
-      const query = await new QueryBuilder<TranscribeProcess>()
-        .table(process.env.table ?? '')
-        .create({
-          id: key,
-          operationStatus: 'pending',
-          createdDate: Date.now(),
-          completedDate: 0,
-          transcribedText: ''
-        });
-
-      console.log(query);
-      return {
-        statusCode: ApiGatewayResponseCodes.OK,
-        body: {
-          jobId: key
-        }
-      };
-    }
-    catch (err) {
-      console.log(err);
-    }
 
     return {
-      statusCode: ApiGatewayResponseCodes.BAD_REQUEST,
+      statusCode: ApiGatewayResponseCodes.OK,
       body: {
-        message: 'error'
+        jobId: key
       }
     };
   }

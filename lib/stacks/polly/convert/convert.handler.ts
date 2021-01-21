@@ -24,43 +24,37 @@ class UploadHandler extends BaseHandler {
   }
 
   async run(): Promise<any> {
-    try {
-      const pollyJob = await this.pollyHelper.startJob({
-        OutputFormat: 'mp3',
-        OutputS3BucketName: process.env.bucket ?? '',
-        Text: this.input.text,
-        VoiceId: 'Joanna',
-        SnsTopicArn: process.env.topic
+    const pollyJob = await this.pollyHelper.startJob({
+      OutputFormat: 'mp3',
+      OutputS3BucketName: process.env.bucket ?? '',
+      Text: this.input.text,
+      VoiceId: 'Joanna',
+      SnsTopicArn: process.env.topic
+    });
+
+    if (pollyJob.$response.error) {
+      throw Error('Could not start Polly job');
+    }
+
+    const id = pollyJob.SynthesisTask?.TaskId ?? '';
+
+    const query = await new QueryBuilder<PollyProcess>()
+      .table(process.env.table ?? '')
+      .create({
+        id: id,
+        operationStatus: 'pending',
+        createdDate: Date.now(),
+        completedDate: 0,
+        fileUrl: ''
       });
 
-      if (pollyJob.$response.error) {
-        throw Error('Could not start Polly job');
+    return {
+      statusCode: ApiGatewayResponseCodes.OK,
+      body: {
+        process: query
       }
+    };
 
-      const id = pollyJob.SynthesisTask?.TaskId ?? '';
-
-      const query = await new QueryBuilder<PollyProcess>()
-        .table(process.env.table ?? '')
-        .create({
-          id: id,
-          operationStatus: 'pending',
-          createdDate: Date.now(),
-          completedDate: 0,
-          fileUrl: ''
-        });
-
-      console.log(query);
-
-      return {
-        statusCode: ApiGatewayResponseCodes.OK,
-        body: {
-          process: query
-        }
-      };
-    }
-    catch (err) {
-      console.log(err);
-    }
 
     return {
       statusCode: ApiGatewayResponseCodes.BAD_REQUEST,

@@ -9,7 +9,6 @@ class CompletedHandler extends BaseHandler {
     input: CompletedEventData;
 
     parseEvent(event: any) {
-        console.log(event);
         this.input = {
             notifications: []
         };
@@ -35,7 +34,6 @@ class CompletedHandler extends BaseHandler {
                     operationStatus: 'completed',
                     fileUrl: notification.outputUri
                 });
-            console.log(update);
         }
 
         return {

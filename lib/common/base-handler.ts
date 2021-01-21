@@ -1,3 +1,4 @@
+import { Logger } from "../helpers/logger-helper";
 import { ApiGatewayResponseCodes } from "./api-gateway-response-codes";
 
 export interface Response {
@@ -20,8 +21,8 @@ export default abstract class BaseHandler {
 
     protected format(data: Response) {
         return {
-            statusCode: data.statusCode,
-            body: JSON.stringify(data.body),
+            statusCode: data.statusCode ?? ApiGatewayResponseCodes.OK,
+            body: JSON.stringify(data.body) ?? {},
         };
     }
 
@@ -38,27 +39,35 @@ export default abstract class BaseHandler {
 
     public create() {
         return async (event: any) => {
+            Logger.info(event);
+            
             this.parseEvent(event);
 
             if (!this.validate()) {
+                Logger.error('Input parameters not valid');
+                Logger.error(event);
                 return {
                     statusCode: ApiGatewayResponseCodes.BAD_REQUEST,
-                    body: JSON.stringify({ message: 'Body not valid' })
+                    body: JSON.stringify({ message: 'Input parameters not valid' })
                 };
             }
 
-            if(!this.authorize()) {
+            if (!this.authorize()) {
+                Logger.error('Unauthorized access');
                 return {
                     statusCode: ApiGatewayResponseCodes.UNAUTHORIZED,
-                    body: JSON.stringify({ message: 'Unauthorized' })
+                    body: JSON.stringify({ message: 'Unauthorized access' })
                 };
             }
 
             try {
                 const result: Response = await this.run();
+                Logger.info('Successful execution');
+                Logger.info(result);
                 return this.format(result);
             }
             catch (err) {
+                Logger.error(err.message);
                 return this.formatError(err.message);
             }
         };

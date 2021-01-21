@@ -1,4 +1,5 @@
 import { DynamoDbHelper } from "./db-helper";
+import { Logger } from "./logger-helper";
 
 export class QueryBuilder<T> {
     db: DynamoDbHelper;
@@ -63,6 +64,8 @@ export class QueryBuilder<T> {
         if (!this.tableName) Error('Table name not specified');
         if (!this.conditions) Error('Conditions not specified');
 
+        Logger.info(`Fetching ${this.tableName} single record with ${JSON.stringify(this.conditions)} keys`);
+
         const params = {
             TableName: this.tableName,
             Key: this.conditions
@@ -70,8 +73,14 @@ export class QueryBuilder<T> {
 
         const result = await this.db.getItem(params);
 
-        if (result.$response.error || !result.Item) {
+        if (result.$response.error) {
+            Logger.error(result.$response.error);
             throw Error("Could not get record");
+        }
+
+        if(!result.$response.data || Object.keys(result.$response.data).length === 0) {
+            Logger.error(result.$response.error);
+            throw Error("Could not find record");
         }
 
         return result.$response.data as T;
@@ -80,6 +89,11 @@ export class QueryBuilder<T> {
     async all(): Promise<T[]> {
         if (!this.tableName) Error('Table name not specified');
         if (!this.conditions) Error('Conditions not specified');
+
+        Logger.info(
+            `Fetching ${this.tableName} records with ${JSON.stringify(this.conditions)} keys`
+            + (this.indexName ? ` and index ${this.indexName}` : '')
+        );
 
         const conditionExpression: string[] = [];
         let conditionExpressionAttributes: object = {};
@@ -98,6 +112,7 @@ export class QueryBuilder<T> {
         const result = await this.db.getAll(params);
 
         if (result.$response.error) {
+            Logger.error(result.$response.error);
             throw Error("Could not get records");
         }
 
@@ -107,6 +122,8 @@ export class QueryBuilder<T> {
     async create(item: T): Promise<boolean> {
         if (!this.tableName) Error('Table name not specified');
 
+        Logger.info(`Creating ${this.tableName} record with ${JSON.stringify(item)}`);
+
         var params = {
             TableName: this.tableName,
             Item: item
@@ -115,6 +132,7 @@ export class QueryBuilder<T> {
         const result = await this.db.putItem(params);
 
         if (result.$response.error) {
+            Logger.error(result.$response.error);
             throw Error("Could not create record");
         }
 
@@ -123,6 +141,8 @@ export class QueryBuilder<T> {
 
     async update(item: Partial<T>): Promise<T> {
         if (!this.tableName) Error('Table name not specified');
+
+        Logger.info(`Updating ${this.tableName} record with ${JSON.stringify(this.tableName)}`);
 
         const updateExpression: string[] = [];
         let updateExpressionAttributes: object = {};
@@ -150,6 +170,9 @@ export class QueryBuilder<T> {
 
     async delete(): Promise<T> {
         if (!this.tableName) Error('Table name not specified');
+        if (!this.conditions) Error('Conditions not specified');
+
+        Logger.info(`Deleting ${this.tableName} record with ${JSON.stringify(this.conditions)} keys`);
 
         var params = {
             TableName: process.env.table ?? '',
@@ -160,6 +183,7 @@ export class QueryBuilder<T> {
         const result = await this.db.deleteItem(params);
 
         if (result.$response.error) {
+            Logger.error(result.$response.error);
             throw Error("Could not delete record");
         }
 

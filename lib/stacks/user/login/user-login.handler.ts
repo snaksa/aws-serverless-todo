@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
+import { Validator } from '../../../common/validators/validator';
 
 interface LoginEventData {
     email: string;
@@ -14,8 +15,9 @@ class LoginHandler extends BaseHandler {
         this.input = JSON.parse(event.body) as LoginEventData;
     }
 
-    validate(): boolean {
-        return this.input.email && this.input.email.length > 0 && this.input.password && this.input.password.length > 0 ? true : false;
+    validate() {
+        return Validator.notEmpty(this.input.email)
+            && Validator.notEmpty(this.input.password);
     }
 
     async run(): Promise<Response> {

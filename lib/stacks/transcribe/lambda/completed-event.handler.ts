@@ -20,7 +20,6 @@ class CompletedEventHandler extends BaseHandler {
 
 
   parseEvent(event: any) {
-    console.log(event);
     this.input = {
       id: event.detail['TranscriptionJobName']
     };
@@ -33,16 +32,15 @@ class CompletedEventHandler extends BaseHandler {
     });
 
     const update = await new QueryBuilder<TranscribeProcess>()
-    .table(process.env.table ?? '')
-    .where({
-      id: this.input.id
-    })
-    .update({
-      completedDate: Date.now(),
-      operationStatus: 'completed',
-      transcribedText: object.Body?.toString('ascii')
-    });
-    console.log(update);
+      .table(process.env.table ?? '')
+      .where({
+        id: this.input.id
+      })
+      .update({
+        completedDate: Date.now(),
+        operationStatus: 'completed',
+        transcribedText: object.Body?.toString('ascii')
+      });
 
     return {
       message: 'finish'

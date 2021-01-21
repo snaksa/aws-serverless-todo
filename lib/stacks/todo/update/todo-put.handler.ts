@@ -2,6 +2,7 @@ import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
 import { ToDo } from '../../../common/interface';
+import { Validator } from '../../../common/validators/validator';
 import { QueryBuilder } from '../../../helpers/query-builder';
 
 interface ToDoUpdateEventData {
@@ -24,13 +25,18 @@ class ToDoUpdateHandler extends BaseHandler {
         this.input.id = event.pathParameters.id;
     }
 
+    validate() {
+        return Validator.notEmpty(this.input.id)
+            && Validator.notEmpty(this.input.todo);
+    }
+
     authorize(): boolean {
         // TODO: fetch user from DynamoDB by ID
         this.user = {
             id: this.input.userId
         };
 
-        return this.user.id ? true : false;
+        return Boolean(this.user.id);
     }
 
     async run(): Promise<Response> {
@@ -62,9 +68,7 @@ class ToDoUpdateHandler extends BaseHandler {
 
             return {
                 statusCode: ApiGatewayResponseCodes.OK,
-                body: {
-                    todo: query
-                }
+                body: query
             };
         }
 

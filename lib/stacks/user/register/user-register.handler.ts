@@ -2,6 +2,7 @@ import * as AWS from 'aws-sdk';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
 import { User } from '../../../common/interface';
+import { Validator } from '../../../common/validators/validator';
 import { QueryBuilder } from '../../../helpers/query-builder';
 
 interface RegisterEventData {
@@ -16,8 +17,9 @@ class RegisterHandler extends BaseHandler {
         this.input = JSON.parse(event.body) as RegisterEventData;
     }
 
-    validate(): boolean {
-        return this.input.email && this.input.email.length > 0 && this.input.password && this.input.password.length > 0 ? true : false;
+    validate() {
+        return Validator.notEmpty(this.input.email)
+            && Validator.notEmpty(this.input.password);
     }
 
     async run(): Promise<Response> {

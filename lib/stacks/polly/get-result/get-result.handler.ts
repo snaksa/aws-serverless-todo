@@ -18,7 +18,6 @@ class GetResultHandler extends BaseHandler {
   }
 
   parseEvent(event: any) {
-    console.log(event);
     this.input = {
       id: event.pathParameters.id
     };

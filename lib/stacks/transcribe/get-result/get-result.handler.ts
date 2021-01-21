@@ -2,6 +2,7 @@ import BaseHandler from '../../../common/base-handler';
 import { QueryBuilder } from '../../../helpers/query-builder';
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import { TranscribeProcess } from '../../../common/interface/transcribeProcess.interface';
+import { Validator } from '../../../common/validators/validator';
 
 interface GetResultEventData {
   id: string;
@@ -11,10 +12,13 @@ class GetResultHandler extends BaseHandler {
   input: GetResultEventData;
 
   parseEvent(event: any) {
-    console.log(event);
     this.input = {
       id: event.pathParameters.id
     };
+  }
+
+  validate() {
+    return Validator.notEmpty(this.input.id);
   }
 
   async run(): Promise<any> {
@@ -27,9 +31,7 @@ class GetResultHandler extends BaseHandler {
 
     return {
       statusCode: ApiGatewayResponseCodes.OK,
-      body: {
-        todo: query,
-      }
+      body: query
     };
   }
 }

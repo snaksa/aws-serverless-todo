@@ -1,6 +1,7 @@
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
 import { ToDo } from '../../../common/interface';
+import { Validator } from '../../../common/validators/validator';
 import { QueryBuilder } from '../../../helpers/query-builder';
 
 
@@ -18,11 +19,14 @@ class ToDoGetHandler extends BaseHandler {
     private user: UserData;
 
     parseEvent(event: any) {
-        console.log(event);
         this.input = {
             id: event.pathParameters.id,
             userId: event.requestContext.authorizer.claims.sub
         };
+    }
+
+    validate() {
+        return Validator.notEmpty(this.input.id);
     }
 
     authorize(): boolean {
@@ -31,7 +35,7 @@ class ToDoGetHandler extends BaseHandler {
             id: this.input.userId
         };
 
-        return this.user.id ? true : false;
+        return Boolean(this.user.id);
     }
 
     async run(): Promise<Response> {
@@ -45,9 +49,7 @@ class ToDoGetHandler extends BaseHandler {
 
         return {
             statusCode: ApiGatewayResponseCodes.OK,
-            body: {
-                todo: query,
-            }
+            body: query
         };
     }
 }

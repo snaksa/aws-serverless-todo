@@ -2,6 +2,7 @@ import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-co
 import BaseHandler, { Response } from '../../../common/base-handler';
 import { QueryBuilder } from '../../../helpers/query-builder';
 import { User } from '../../../common/interface';
+import { Validator } from '../../../common/validators/validator';
 
 interface UserDetailsEventData {
     userId: string;
@@ -22,12 +23,11 @@ class UserDetailsHandler extends BaseHandler {
     }
 
     authorize(): boolean {
-        // TODO: fetch user from DynamoDB by ID
         this.user = {
             id: this.input.userId
         };
 
-        return this.user.id ? true : false;
+        return Boolean(this.user.id);
     }
 
     async run(): Promise<Response> {

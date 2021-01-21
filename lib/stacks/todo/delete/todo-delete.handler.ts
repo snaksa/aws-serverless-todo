@@ -1,6 +1,7 @@
 import { ApiGatewayResponseCodes } from '../../../common/api-gateway-response-codes';
 import BaseHandler, { Response } from '../../../common/base-handler';
 import { ToDo } from '../../../common/interface';
+import { Validator } from '../../../common/validators/validator';
 import { QueryBuilder } from '../../../helpers/query-builder';
 import { SnsHelper } from '../../../helpers/sns-helper';
 
@@ -31,13 +32,17 @@ class ToDoDeleteHandler extends BaseHandler {
         };
     }
 
+    validate() {
+        return Validator.notEmpty(this.input.id);
+    }
+
     authorize(): boolean {
         // TODO: fetch user from DynamoDB by ID
         this.user = {
             id: this.input.userId
         };
 
-        return this.user.id ? true : false;
+        return Boolean(this.user.id);
     }
 
     async run(): Promise<Response> {

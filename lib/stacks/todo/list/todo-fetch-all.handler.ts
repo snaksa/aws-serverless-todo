@@ -27,7 +27,7 @@ class ToDoListHandler extends BaseHandler {
             id: this.input.userId
         };
 
-        return this.user.id ? true : false;
+        return Boolean(this.user.id);
     }
 
     async run(): Promise<Response> {
